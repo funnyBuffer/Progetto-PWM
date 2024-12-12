@@ -55,9 +55,20 @@ async function updateUser(db, res, username, name, surname, email, password, fav
 
         result = findUser(username); 
 
-        const filter = { username: username };
+        const filter = { username: result.username};
 
         const options = { upsert: false }; 
+
+        const updateDoc = {
+            $set: Object.fromEntries(
+                Object.entries(updates).filter(([key, value]) => value !== null)
+            )
+        };
+
+        if (Object.keys(updateDoc.$set).length === 0) {
+            console.log("Nessun parametro da aggiornare.");
+            return;
+        }
 
         const result = await collection.updateMany(filter, updateDoc, options);
 
@@ -98,4 +109,21 @@ async function findUser(filter) {
     }
 }
 
-module.exports = { addUser, updateUser, findUser };
+async function deleteUser(username, password){
+
+    try{
+        const connection = await connectToDatabase();
+        const database = connection.db;
+        const client = connection.client;
+
+        const user = await collection.deleteMany(filter);
+
+    } catch(error){
+        console.log("Errore durante la cancellazione dell'utente", error);
+        throw error;
+    } finally {
+        await client.close();
+    }
+}
+
+module.exports = { addUser, updateUser, findUser, deleteUser};

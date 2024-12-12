@@ -1,6 +1,6 @@
 const express = require('express')
 const {connectToDatabase} = require('./db');
-const {addUser} = require('./func.js');
+const {addUser, findUser, deleteUser} = require('./func.js');
 
 require('dotenv').config();
 
@@ -15,7 +15,7 @@ const bodyParser = require('body-parser');
 
 app.use(bodyParser.json());
 
-app.get('/users/find', async (req, res) => {
+app.get('/users/findAll', async (req, res) => {
   try{
     const connection = await connectToDatabase();
     const db = connection.db;
@@ -45,6 +45,16 @@ app.post('/users/add', async (req, res) => {
 app.post('/users/update', async (req, res) => {
     const {username, name, surname, email, password, fav_hero} = req.body;
     await updateUser(null, res, username, name, surname, email, password, fav_hero);
+})
+
+app.get('/user/find', async (req, res) => {
+  const{ username } = req.body;
+  await findUser(req);
+})
+
+app.delete('/user/delete', async (req,res) =>{
+  const{ username, password} = req.body;
+  await deleteUser(req);
 })
 
 app.listen(port, () => {
