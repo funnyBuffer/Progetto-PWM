@@ -15,7 +15,7 @@ const bodyParser = require('body-parser');
 
 app.use(bodyParser.json());
 
-app.get('/users', async (req, res) => {
+app.get('/users/find', async (req, res) => {
   try{
     const connection = await connectToDatabase();
     const db = connection.db;
@@ -33,7 +33,7 @@ app.get('/users', async (req, res) => {
   }
 })
 
-app.post('/users', async function (req, res) {
+app.post('/users/add', async (req, res) => {
     const { username, name, surname, email, password, fav_hero } = req.body;
 
     if (!username || !name || !surname || !email || !password || !fav_hero) {
@@ -41,6 +41,11 @@ app.post('/users', async function (req, res) {
     }
     await addUser(null, res, username, name, surname, email, password, fav_hero);
 });
+
+app.post('/users/update', async (req, res) => {
+    const {username, name, surname, email, password, fav_hero} = req.body;
+    await updateUser(null, res, username, name, surname, email, password, fav_hero);
+})
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
