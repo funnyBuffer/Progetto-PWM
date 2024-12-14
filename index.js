@@ -1,6 +1,6 @@
 const express = require('express')
 const {connectToDatabase} = require('./db');
-const {addUser, findUser, deleteUser} = require('./func.js');
+const {addUser, findUser, deleteUser, updateUser} = require('./func.js');
 
 require('dotenv').config();
 
@@ -15,6 +15,7 @@ const bodyParser = require('body-parser');
 
 app.use(bodyParser.json());
 
+//testata
 app.get('/users/findAll', async (req, res) => {
   try{
     const connection = await connectToDatabase();
@@ -33,6 +34,7 @@ app.get('/users/findAll', async (req, res) => {
   }
 })
 
+//testata
 app.post('/users/add', async (req, res) => {
     const { username, name, surname, email, password, fav_hero } = req.body;
 
@@ -42,22 +44,39 @@ app.post('/users/add', async (req, res) => {
     await addUser(null, res, username, name, surname, email, password, fav_hero);
 });
 
+//testato
 app.post('/users/update', async (req, res) => {
-    const {username, name, surname, email, password, fav_hero} = req.body;
-    await updateUser(null, res, username, name, surname, email, password, fav_hero);
-})
+  const { userId, old_username, username, name, surname, email, password, fav_hero } = req.body;
+  
+  const userResult = await findUser(old_username);
+  if (userResult.found) {
+      await updateUser(null, res, userId, old_username, username, name, surname, email, password, fav_hero);
+  } else {
+      return res.status(404).send({ error: "Utente non esistente" });
+  }
+});
 
-app.get('/user/find', async (req, res) => {
+//testata
+app.get('/users/find', async (req, res) => {
   const{ username } = req.body;
-  await findUser(req);
+  const userResult = await findUser(username);
+  if(userResult.found){
+      res.status(200).send({
+        message: "Utente trovato",
+        username: userResult.data.username,
+        userId: userResult.data._id
+    })
+  } else{
+      res.status(404).send({ message: "Utente non trovato" });
+  }
 })
 
-app.delete('/user/delete', async (req,res) =>{
+app.delete('/users/delete', async (req,res) =>{
   const{ username, password} = req.body;
   await deleteUser(req);
 })
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
+  console.log(`Server in ascolto sulla porta: ${port}`)
 })
 

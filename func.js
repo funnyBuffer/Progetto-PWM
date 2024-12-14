@@ -12,14 +12,13 @@ const user = {
 const {connectToDatabase} = require('./db');
 
 async function addUser(db, res, username, name, surname, email, password, fav_hero) {
-    
-
-    /////////// Controlli sulle credenziali /////////////////
 
     try {
         const connection = await connectToDatabase();
         const database = connection.db;
         const client = connection.client;
+
+        /////////// Controlli sulle credenziali /////////////////
 
         const user = {
             username,
@@ -46,7 +45,62 @@ async function addUser(db, res, username, name, surname, email, password, fav_he
     }
 }
 
-async function updateUser(db, res, username, name, surname, email, password, fav_hero) {
+async function updateUser(db, res, userId, old_username, username, name, surname, email, password, fav_hero) {
+    try {
+        const connection = await connectToDatabase();
+        const database = connection.db;
+        const client = connection.client;
+
+        // Trova l'utente esistente
+        const userResult = await findUser(old_username);
+
+        if (!userResult.found) {
+            return res.status(404).send({ error: "Utente non trovato" });
+        } 
+
+        const existingUser = userResult.data;  
+
+        const updates = {
+            username,
+            name,
+            surname,
+            email,
+            password,
+            fav_hero
+        };
+
+        const filteredUpdates = Object.fromEntries(
+            Object.entries(updates).filter(([key, value]) => value != null)
+        );
+
+        const updateDoc = {
+            $set: {
+                ...existingUser,  
+                ...filteredUpdates  
+            }
+        };
+
+        const result = await database.collection("Users").updateOne(
+            { _id: userResult.data._id },  
+            updateDoc  
+        );
+
+        if (result.modifiedCount > 0) {
+            res.status(200).send({
+                message: "Utente aggiornato con successo!"
+            });
+        } else {
+            res.status(404).send({ error: "Nessun aggiornamento effettuato" });
+        }
+
+        client.close();
+    } catch (err) {
+        console.error("Errore durante l'aggiornamento dell'utente:", err);
+        res.status(500).send({ error: "Errore con la connessione al database" });
+    }
+}
+
+async function OldupdateUser(db, res, username, name, surname, email, password, fav_hero) {
     
     try {
         const connection = await connectToDatabase();
@@ -65,11 +119,6 @@ async function updateUser(db, res, username, name, surname, email, password, fav
             )
         };
 
-        if (Object.keys(updateDoc.$set).length === 0) {
-            console.log("Nessun parametro da aggiornare.");
-            return;
-        }
-
         const result = await collection.updateMany(filter, updateDoc, options);
 
         res.status(201).send({
@@ -86,26 +135,28 @@ async function updateUser(db, res, username, name, surname, email, password, fav
 }
 
 //il filter è eseguita sull'username
-async function findUser(filter) {
-
+async function findUser(filter) { 
+    let client;
     try {
         const connection = await connectToDatabase();
         const database = connection.db;
-        const client = connection.client;
-
-        // Cerca l'utente in base al filtro
-        const user = await collection.findMany(filter);
+        client = connection.client;
+        
+        // Cerca l'utente
+        const user = await database.collection("Users").findOne({ username: filter });
 
         if (user) {
-            return { found: true, data: user }; // Restituisci true e i dati dell'utente
+            return { found: true, data: user }; 
         } else {
-            return { found: false }; // Restituisci false se l'utente non esiste
+            return { found: false }; 
         }
     } catch (error) {
         console.error("Errore durante la ricerca:", error);
         throw error;
     } finally {
-        await client.close();
+        if (client) {
+            await client.close();
+        }
     }
 }
 

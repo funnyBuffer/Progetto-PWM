@@ -1,15 +1,15 @@
 const { MongoClient } = require('mongodb');
 
 // URI del database (locale o remoto)
-const uri = 'mongodb://localhost:3000';
+//const uri = 'mongodb://localhost:3000';
 
 // Nome del database
 const dbName = 'PWM';
 
 // Crea il client
-const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+//const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
-async function connectToDatabase() {
+/* async function connectToDatabase() {
   try {
     // Connessione al server MongoDB
     await client.connect();
@@ -23,7 +23,7 @@ async function connectToDatabase() {
   } catch (err) {
     console.error('Errore di connessione al database:', err);
   }
-}
+} */
 
 // Esporta il client e la funzione di connessione
 module.exports = { connectToDatabase, client };
