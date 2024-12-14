@@ -51,7 +51,6 @@ async function updateUser(db, res, userId, old_username, username, name, surname
         const database = connection.db;
         const client = connection.client;
 
-        // Trova l'utente esistente
         const userResult = await findUser(old_username);
 
         if (!userResult.found) {
@@ -160,21 +159,47 @@ async function findUser(filter) {
     }
 }
 
-async function deleteUser(username, password){
-
-    try{
+//funzione attiva, ma manca il controllo della password
+async function deleteUser(res, username, password) {
+    let client;
+    try {
         const connection = await connectToDatabase();
         const database = connection.db;
-        const client = connection.client;
+        client = connection.client;
 
-        const user = await collection.deleteMany(filter);
+        const user = await database.collection("Users").findOne({ username });
 
-    } catch(error){
-        console.log("Errore durante la cancellazione dell'utente", error);
-        throw error;
+        if (!user) {
+            return res.status(404).send({ message: "Utente non trovato" });
+        }
+
+        //Fare il controllo delle password
+        // Controllo della password (deve essere hashata nel database)
+
+        if (!isPasswordValid) {
+            return res.status(401).send({ message: "Password non valida" });
+        }
+
+        const deleteResult = await database.collection("Users").deleteOne({ username });
+
+        if (deleteResult.deletedCount === 1) {
+            return res.status(200).send({ message: "Utente eliminato con successo" });
+        } else {
+            return res.status(500).send({ message: "Errore durante l'eliminazione dell'utente" });
+        }
+    } catch (error) {
+        console.error("Errore durante la cancellazione dell'utente:", error);
+        return res.status(500).send({ message: "Errore interno del server" });
     } finally {
-        await client.close();
+        if (client) {
+            try {
+                await client.close();
+            } catch (closeError) {
+                console.error("Errore durante la chiusura del client:", closeError);
+            }
+        }
     }
 }
+
 
 module.exports = { addUser, updateUser, findUser, deleteUser};

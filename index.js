@@ -71,9 +71,10 @@ app.get('/users/find', async (req, res) => {
   }
 })
 
+//testata
 app.delete('/users/delete', async (req,res) =>{
   const{ username, password} = req.body;
-  await deleteUser(req);
+  await deleteUser(res, username, password);
 })
 
 app.listen(port, () => {
