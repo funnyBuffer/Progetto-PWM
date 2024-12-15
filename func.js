@@ -1,13 +1,4 @@
-const user = {
-    username: "",
-    name: "",
-    surname: "",
-    email: "",
-    password: "",
-    credits: 0,
-    cards: [],
-    fav_hero: ""
-};
+const crypto = require('crypto');
 
 const {connectToDatabase} = require('./db');
 
@@ -18,7 +9,33 @@ async function addUser(db, res, username, name, surname, email, password, fav_he
         const database = connection.db;
         const client = connection.client;
 
-        /////////// Controlli sulle credenziali /////////////////
+        /////////// Controlli sulle credenziali ///////////
+        if (name.length < 3) {
+            res.status(400).send("Nome troppo corto");
+            return;
+        } 
+        if (surname.length < 3) {
+            res.status(400).send("Cognome troppo corto");
+            return;
+        }
+        if(password.length < 8){
+            res.status(400).send("Password troppo corta");
+            return;
+        }
+        if((await findUser(username)).found){
+            res.status(400).send("Username già esistente");
+            return;
+        }
+        if((await findEmail(email)).found){
+            res.status(400).send("Email già usata");
+            return;
+        }
+
+        // cifratura password //
+
+        password = crypto.createHash('sha256')
+                         .update(password)
+                         .digest('hex');
 
         const user = {
             username,
@@ -99,39 +116,6 @@ async function updateUser(db, res, userId, old_username, username, name, surname
     }
 }
 
-async function OldupdateUser(db, res, username, name, surname, email, password, fav_hero) {
-    
-    try {
-        const connection = await connectToDatabase();
-        const database = connection.db;
-        const client = connection.client;
-
-        result = findUser(username); 
-
-        const filter = { username: result.username};
-
-        const options = { upsert: false }; 
-
-        const updateDoc = {
-            $set: Object.fromEntries(
-                Object.entries(updates).filter(([key, value]) => value !== null)
-            )
-        };
-
-        const result = await collection.updateMany(filter, updateDoc, options);
-
-        res.status(201).send({
-            message: "Utente aggiornato con successo!",
-            userId: result.insertedId,
-        });
-
-        client.close();
-    } catch (err) {
-        console.error("Errore durante l'aggiornamento dell'utente:", err);
-        res.status(500).send({ error: "Errore con la connessione al database" });
-    }
-
-}
 
 //il filter è eseguita sull'username
 async function findUser(filter) { 
@@ -159,6 +143,32 @@ async function findUser(filter) {
     }
 }
 
+//il filter è eseguito sulla mail
+async function findEmail(filter) { 
+    let client;
+    try {
+        const connection = await connectToDatabase();
+        const database = connection.db;
+        client = connection.client;
+        
+        // Cerca l'utente
+        const user = await database.collection("Users").findOne({ email: filter });
+
+        if (user) {
+            return { found: true }; 
+        } else {
+            return { found: false }; 
+        }
+    } catch (error) {
+        console.error("Errore durante la ricerca:", error);
+        throw error;
+    } finally {
+        if (client) {
+            await client.close();
+        }
+    }
+}
+
 //funzione attiva, ma manca il controllo della password
 async function deleteUser(res, username, password) {
     let client;
@@ -173,8 +183,7 @@ async function deleteUser(res, username, password) {
             return res.status(404).send({ message: "Utente non trovato" });
         }
 
-        //Fare il controllo delle password
-        // Controllo della password (deve essere hashata nel database)
+        isPasswordValid = user.password == crypto.createHash('sha256').update(password).digest('hex');
 
         if (!isPasswordValid) {
             return res.status(401).send({ message: "Password non valida" });
@@ -202,4 +211,4 @@ async function deleteUser(res, username, password) {
 }
 
 
-module.exports = { addUser, updateUser, findUser, deleteUser};
+module.exports = { addUser, updateUser, findUser, deleteUser };
