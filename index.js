@@ -80,6 +80,22 @@ app.post('/login', async (req, res) =>{
   await login(res, username, password);
 })
 
+app.get('/auth', (req, res) => {
+  const token = req.cookies.authToken;
+
+  if (!token) {
+    return res.status(403).send({ error: 'Accesso non autorizzato' });
+  }
+
+  try {
+    // Verifica il token
+    const decoded = jwt.verify(token, SECRET_KEY);
+    return res.status(200).send({ message: 'Accesso consentito', user: decoded });
+  } catch (err) {
+    return res.status(401).send({ error: 'Token non valido' });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server in ascolto sulla porta: ${port}`)
 })

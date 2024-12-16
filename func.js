@@ -2,6 +2,8 @@ const crypto = require('crypto');
 
 const {connectToDatabase} = require('./db');
 
+const jwt = require('jsonwebtoken');
+
 async function addUser(db, res, username, name, surname, email, password, fav_hero) {
 
     try {
@@ -30,7 +32,12 @@ async function addUser(db, res, username, name, surname, email, password, fav_he
             res.status(400).send("Email già usata");
             return;
         }
-
+        if((email) => {
+            const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            return !emailRegex.test(email);
+          }){
+            // inserire errore dell'email non valida
+          }
         // cifratura password //
 
         password = crypto.createHash('sha256')
@@ -217,17 +224,31 @@ async function login(res, username, password){
         client = connection.client;
 
         const user = await findUser(username);
+        let token; 
+
         if(user.found){
             if(user.data.password == crypto.createHash('sha256').update(password).digest('hex')){
-
+                //generazione di un token
+                const payload = {username}
+                token = jwt.sign(payload, process.env.secret_key, { expiresIn: '1h' });
+                console.log(token)
             } else {
-                res.send(400).send
+                res.status(400).send({message:"Credenziali errate"})
                 return; 
             }
         } else{
             res.status(404).send({message:"Utente non esistente"});
             return;
         }
+        res.cookie('authToken', token, {
+            httpOnly: true, // Il cookie è accessibile solo dal server
+            secure: true, // Usa `true` se utilizzi HTTPS
+            sameSite: 'Strict', // Protegge contro CSRF
+            maxAge: 60 * 60 * 1000, // Durata di 1 ora
+          });
+        return res.status(200).send({
+            message:"Autenticazione effettuata"
+        });
 
     } catch(error){
         console.log("Errore durante il login:",error);
