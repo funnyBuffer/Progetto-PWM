@@ -11,8 +11,7 @@ const doc = {
             $name: 'Valerio',
             $surname: 'Bellandi',
             $password: 'password',
-            email: 'valerio.bellandi@unimi.it',
-            $film_preferiti: []
+            email: 'valerio.bellandi@unimi.it'
         }
     }
   },
@@ -20,6 +19,6 @@ const doc = {
 };
 
 const outputFile = './swagger-output.json';
-const routes = ['index.js'];
+const routes = ['API.js'];
 
 swaggerAutogen(outputFile, routes, doc);

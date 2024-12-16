@@ -1,6 +1,6 @@
 const express = require('express')
-const {connectToDatabase} = require('./db');
-const {addUser, findUser, deleteUser, updateUser} = require('./func.js');
+const {connectToDatabase} = require('./db.js');
+const {addUser, findUser, deleteUser, updateUser, login} = require('./func.js');
 
 require('dotenv').config();
 
@@ -8,15 +8,15 @@ const app = express()
 const port = process.env.port;
 
 const swaggerUi = require('swagger-ui-express');
-//const swaggerDocument = require('./swagger-output.json');
-//app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+const swaggerDocument = require('./swagger-output.json');
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 const bodyParser = require('body-parser');
 
 app.use(bodyParser.json());
 
-//testata
 app.get('/users/findAll', async (req, res) => {
+  let client;
   try{
     const connection = await connectToDatabase();
     const db = connection.db;
@@ -34,7 +34,6 @@ app.get('/users/findAll', async (req, res) => {
   }
 })
 
-//testata
 app.post('/users/add', async (req, res) => {
     const { username, name, surname, email, password, fav_hero } = req.body;
 
@@ -44,7 +43,6 @@ app.post('/users/add', async (req, res) => {
     await addUser(null, res, username, name, surname, email, password, fav_hero);
 });
 
-//testato
 app.post('/users/update', async (req, res) => {
   const { userId, old_username, username, name, surname, email, password, fav_hero } = req.body;
   
@@ -56,7 +54,6 @@ app.post('/users/update', async (req, res) => {
   }
 });
 
-//testata
 app.get('/users/find', async (req, res) => {
   const{ username } = req.body;
   const userResult = await findUser(username);
@@ -71,10 +68,16 @@ app.get('/users/find', async (req, res) => {
   }
 })
 
-//testata
 app.delete('/users/delete', async (req,res) =>{
   const{ username, password} = req.body;
   await deleteUser(res, username, password);
+})
+
+app.post('/login', async (req, res) =>{
+
+  const {username, password} = req.body;
+
+  await login(res, username, password);
 })
 
 app.listen(port, () => {

@@ -169,7 +169,6 @@ async function findEmail(filter) {
     }
 }
 
-//funzione attiva, ma manca il controllo della password
 async function deleteUser(res, username, password) {
     let client;
     try {
@@ -210,5 +209,32 @@ async function deleteUser(res, username, password) {
     }
 }
 
+async function login(res, username, password){
+    let client;
+    try{
+        const connection = await connectToDatabase();
+        const database = connection.db;
+        client = connection.client;
 
-module.exports = { addUser, updateUser, findUser, deleteUser };
+        const user = await findUser(username);
+        if(user.found){
+            if(user.data.password == crypto.createHash('sha256').update(password).digest('hex')){
+
+            } else {
+                res.send(400).send
+                return; 
+            }
+        } else{
+            res.status(404).send({message:"Utente non esistente"});
+            return;
+        }
+
+    } catch(error){
+        console.log("Errore durante il login:",error);
+        return res.status(500).send({message:"Errore interno del server"})
+    } finally {
+        await client.close();
+    }
+}
+
+module.exports = { addUser, updateUser, findUser, deleteUser, login };
