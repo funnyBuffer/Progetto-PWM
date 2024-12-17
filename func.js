@@ -4,6 +4,11 @@ const {connectToDatabase} = require('./db');
 
 const jwt = require('jsonwebtoken');
 
+function isInvalidEmail(email){
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return !emailRegex.test(email); 
+}
+
 async function addUser(db, res, username, name, surname, email, password, fav_hero) {
 
     try {
@@ -11,33 +16,6 @@ async function addUser(db, res, username, name, surname, email, password, fav_he
         const database = connection.db;
         const client = connection.client;
 
-        /////////// Controlli sulle credenziali ///////////
-        if (name.length < 3) {
-            res.status(400).send("Nome troppo corto");
-            return;
-        } 
-        if (surname.length < 3) {
-            res.status(400).send("Cognome troppo corto");
-            return;
-        }
-        if(password.length < 8){
-            res.status(400).send("Password troppo corta");
-            return;
-        }
-        if((await findUser(username)).found){
-            res.status(400).send("Username già esistente");
-            return;
-        }
-        if((await findEmail(email)).found){
-            res.status(400).send("Email già usata");
-            return;
-        }
-        if((email) => {
-            const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-            return !emailRegex.test(email);
-          }){
-            // inserire errore dell'email non valida
-          }
         // cifratura password //
 
         password = crypto.createHash('sha256')
@@ -69,7 +47,7 @@ async function addUser(db, res, username, name, surname, email, password, fav_he
     }
 }
 
-async function updateUser(db, res, userId, old_username, username, name, surname, email, password, fav_hero) {
+async function updateUser(res, old_username, username, name, surname, email, password, fav_hero, credits) {
     try {
         const connection = await connectToDatabase();
         const database = connection.db;
@@ -89,7 +67,8 @@ async function updateUser(db, res, userId, old_username, username, name, surname
             surname,
             email,
             password,
-            fav_hero
+            fav_hero,
+            credits
         };
 
         const filteredUpdates = Object.fromEntries(
@@ -231,7 +210,6 @@ async function login(res, username, password){
                 //generazione di un token
                 const payload = {username}
                 token = jwt.sign(payload, process.env.secret_key, { expiresIn: '1h' });
-                console.log(token)
             } else {
                 res.status(400).send({message:"Credenziali errate"})
                 return; 
@@ -258,4 +236,26 @@ async function login(res, username, password){
     }
 }
 
-module.exports = { addUser, updateUser, findUser, deleteUser, login };
+async function getCredits(res, amount){
+    const token = req.cookies.authToken;
+
+    if(!token){
+        return res.status(403).send({ error: 'Accesso non autorizzato' });
+    }
+
+    jwt.verify(token, secretKey, async (err, username) => {
+        if (err) {
+            return res.status(403).json({ message: 'Token non valido' });
+        }
+        updateUser
+    });
+}
+
+module.exports = { addUser,
+                   updateUser,
+                   findUser,
+                   findEmail, 
+                   deleteUser, 
+                   login, 
+                   isInvalidEmail 
+                };
