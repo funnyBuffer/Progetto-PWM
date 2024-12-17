@@ -1,4 +1,6 @@
 const express = require('express')
+const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken');
 const {connectToDatabase} = require('./db.js');
 const {addUser, findUser, findEmail, deleteUser, updateUser, login, isInvalidEmail} = require('./func.js');
 
@@ -14,6 +16,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 const bodyParser = require('body-parser');
 
 app.use(bodyParser.json());
+app.use(cookieParser());
 
 app.get('/users/findAll', async (req, res) => {
   let client;
@@ -120,20 +123,25 @@ app.get('/auth', (req, res) => {
   }
 });
 
-app.post('/getcredits', (req, res) => {
+app.post('/updatecredits', (req, res) => {
   const token = req.cookies.authToken;
   const {credits} = req.body;
       if(!token){
           return res.status(403).send({ error: 'Accesso non autorizzato' });
       }
   
-      jwt.verify(token, secretKey, async (err, username) => {
+      jwt.verify(token, process.env.secret_key, async (err, decoded) => {
           if (err) {
               return res.status(403).json({ message: 'Token non valido' });
           }
-          updateUser(res, username, null,null,null,null,null,null, credits);
+          const user = await findUser(decoded.username)
+
+          const updated_credits = user.data.credits + credits
+
+          updateUser(res, user.data.username , null,null,null,null,null,null, updated_credits);
       });
 })
+
 
 app.listen(port, () => {
   console.log(`Server in ascolto sulla porta: ${port}`)
