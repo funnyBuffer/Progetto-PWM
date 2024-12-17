@@ -236,21 +236,6 @@ async function login(res, username, password){
     }
 }
 
-async function getCredits(res, amount){
-    const token = req.cookies.authToken;
-
-    if(!token){
-        return res.status(403).send({ error: 'Accesso non autorizzato' });
-    }
-
-    jwt.verify(token, secretKey, async (err, username) => {
-        if (err) {
-            return res.status(403).json({ message: 'Token non valido' });
-        }
-        updateUser
-    });
-}
-
 module.exports = { addUser,
                    updateUser,
                    findUser,
