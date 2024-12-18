@@ -10,5 +10,8 @@
     "nodemon": "^3.1.7",
     "swagger-autogen": "^2.23.7",
     "swagger-ui-express": "^5.0.1"
+  },
+  "scripts": {
+    "swagger": "node ./swagger.js"
   }
 }

@@ -1,19 +1,37 @@
 {
-  "openapi": "3.0.0",
+  "swagger": "2.0",
   "info": {
+    "version": "1.0.0",
     "title": "Gestione Utenti",
-    "description": "Una semplice API per la gestione degli utenti",
-    "version": "1.0.0"
+    "description": "Documentazione per le API utilizzate per il sito Marvel"
   },
-  "servers": [
+  "host": "localhost:3000",
+  "basePath": "/",
+  "tags": [
     {
-      "url": "http://localhost:3000/"
+      "name": "Users",
+      "description": "Gestione degli utenti"
+    },
+    {
+      "name": "Auth",
+      "description": "Autenticazione e Login"
+    },
+    {
+      "name": "Credits",
+      "description": "Gestione dei crediti utente"
     }
+  ],
+  "schemes": [
+    "http"
   ],
   "paths": {
     "/users/findAll": {
       "get": {
-        "description": "",
+        "tags": [
+          "Users"
+        ],
+        "summary": "Ottieni tutti gli utenti",
+        "description": "Restituisce una lista di tutti gli utenti registrati.",
         "responses": {
           "200": {
             "description": "OK"
@@ -26,91 +44,103 @@
     },
     "/users/add": {
       "post": {
-        "description": "",
-        "responses": {
-          "400": {
-            "description": "Bad Request"
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "username": {
-                    "example": "any"
-                  },
-                  "name": {
-                    "example": "any"
-                  },
-                  "surname": {
-                    "example": "any"
-                  },
-                  "email": {
-                    "example": "any"
-                  },
-                  "password": {
-                    "example": "any"
-                  },
-                  "fav_hero": {
-                    "example": "any"
-                  }
+        "tags": [
+          "Users"
+        ],
+        "summary": "Aggiungi un nuovo utente",
+        "description": "Aggiunge un utente con i dati forniti.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "username": {
+                  "example": "any"
+                },
+                "name": {
+                  "example": "any"
+                },
+                "surname": {
+                  "example": "any"
+                },
+                "email": {
+                  "example": "any"
+                },
+                "password": {
+                  "example": "any"
+                },
+                "fav_hero": {
+                  "example": "any"
                 }
               }
             }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Bad Request"
           }
         }
       }
     },
     "/users/update": {
       "post": {
-        "description": "",
-        "responses": {
-          "404": {
-            "description": "Not Found"
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "userId": {
-                    "example": "any"
-                  },
-                  "old_username": {
-                    "example": "any"
-                  },
-                  "username": {
-                    "example": "any"
-                  },
-                  "name": {
-                    "example": "any"
-                  },
-                  "surname": {
-                    "example": "any"
-                  },
-                  "email": {
-                    "example": "any"
-                  },
-                  "password": {
-                    "example": "any"
-                  },
-                  "fav_hero": {
-                    "example": "any"
-                  }
+        "tags": [
+          "Users"
+        ],
+        "summary": "Modifica un utente",
+        "description": "Modifica un utente con i dati forniti.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "userId": {
+                  "example": "any"
+                },
+                "old_username": {
+                  "example": "any"
+                },
+                "username": {
+                  "example": "any"
+                },
+                "name": {
+                  "example": "any"
+                },
+                "surname": {
+                  "example": "any"
+                },
+                "email": {
+                  "example": "any"
+                },
+                "password": {
+                  "example": "any"
+                },
+                "fav_hero": {
+                  "example": "any"
                 }
               }
             }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
     "/users/find": {
       "get": {
-        "description": "",
+        "tags": [
+          "Users"
+        ],
+        "summary": "Trova un utente",
+        "description": "Trova un utente attraverso l",
         "responses": {
           "200": {
             "description": "OK"
@@ -123,27 +153,110 @@
     },
     "/users/delete": {
       "delete": {
-        "description": "",
+        "tags": [
+          "Users"
+        ],
+        "summary": "Elimina un utente",
+        "description": "Elimina un utente fornendo l",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "username": {
+                  "example": "any"
+                },
+                "password": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
         "responses": {
           "default": {
             "description": ""
           }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "username": {
-                    "example": "any"
-                  },
-                  "password": {
-                    "example": "any"
-                  }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Effettua il login",
+        "description": "Verifica le credenziali e permette l",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "username": {
+                  "example": "any"
+                },
+                "password": {
+                  "example": "any"
                 }
               }
             }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/auth": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Verifica autenticazione",
+        "description": "Verifica se l",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/updatecredits": {
+      "post": {
+        "tags": [
+          "Credits"
+        ],
+        "summary": "Aggiorna i crediti di un utente",
+        "description": "Permette di aggiornare il numero di crediti di un utente.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "credits": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden"
           }
         }
       }
@@ -151,31 +264,14 @@
   },
   "components": {
     "schemas": {
-      "userSchema": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "example": "Valerio"
-          },
-          "surname": {
-            "type": "string",
-            "example": "Bellandi"
-          },
-          "password": {
-            "type": "string",
-            "example": "password"
-          },
-          "email": {
-            "type": "string",
-            "example": "valerio.bellandi@unimi.it"
-          }
-        },
-        "required": [
-          "name",
-          "surname",
-          "password"
-        ]
+      "Users": {
+        "$username": "Superhero1",
+        "$name": "David",
+        "$surname": "Pizzolato",
+        "$password": "PwMoltoBella12345",
+        "$email": "david.pizzolato1@studenti.unimi.it",
+        "$fav_hero": "Superman",
+        "$credits": "7040"
       }
     }
   }

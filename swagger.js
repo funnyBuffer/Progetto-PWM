@@ -1,24 +1,34 @@
-const swaggerAutogen = require('swagger-autogen')({openapi: '3.0.0'});
+const swaggerAutogen = require('swagger-autogen')();
 
 const doc = {
   info: {
+    version:'1.0.0',
     title: 'Gestione Utenti',
-    description: 'Una semplice API per la gestione degli utenti'
+    description: 'Documentazione per le API utilizzate per il sito Marvel'
   },
+  tags: [
+    { name: 'Users', description: 'Gestione degli utenti' },
+    { name: 'Auth', description: 'Autenticazione e Login' },
+    { name: 'Credits', description: 'Gestione dei crediti utente' }
+  ],
   components: {
-    schemas:{
-        userSchema:{
-            $name: 'Valerio',
-            $surname: 'Bellandi',
-            $password: 'password',
-            email: 'valerio.bellandi@unimi.it'
-        }
+    schemas: {
+      Users: {
+        $username: 'Superhero1',
+        $name: 'David',
+        $surname: 'Pizzolato',
+        $password: 'PwMoltoBella12345',
+        $email: 'david.pizzolato1@studenti.unimi.it',
+        $fav_hero: 'Superman',
+        $credits: '7040'
+      }
     }
   },
   host: 'localhost:3000'
 };
 
+
 const outputFile = './swagger-output.json';
-const routes = ['API.js'];
+const routes = ['./routes/users.js','./routes/auth.js','./routes/credits.js'];
 
 swaggerAutogen(outputFile, routes, doc);
