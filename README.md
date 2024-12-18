@@ -7,10 +7,8 @@ Marvel Superhero Cards è un sito web che permette agli utenti di esplorare e vi
 ## Caratteristiche
 
 - Visualizzazione di carte di supereroi con dettagli come nome, poteri, e descrizione.
-- Ricerca e filtraggio per supereroe, nome e tipo di potere.
 - Responsività per visualizzare correttamente su dispositivi mobili e desktop.
-- Design interattivo con animazioni per un'esperienza coinvolgente.
-- Backend con una API RESTful per la gestione dei dati relativi ai supereroi.
+- Backend con API personalizzate per la gestione degli utenti e per lo scambio di carte dei supereroi Marvel.
 
 ## Tecnologie Utilizzate
 

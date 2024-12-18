@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <!-- Link al CSS di Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Stili personalizzati -->
+    <link rel="stylesheet" href="css_login.css">
+</head>
+
+<body>
+    <div class="background-container"></div>
+    <div class="container login-container">
+        <h2 class="text-center mb-4">Registrazione</h2>
+        <form method="post">
+            <!--email-->
+            <div class="mb-3 form-group">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" placeholder="Inserisci la tua email" required>
+            </div>
+            <!--username-->
+            <div class="mb-3 form-group">
+                <label for="email" class="form-label">Username</label>
+                <input type="email" class="form-control" id="email" placeholder="Inserisci il tuo username" required>
+            </div>
+
+            <!--password-->
+            <div class="mb-3 form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" placeholder="Inserisci la tua password"
+                    required>
+            </div>
+            <!--conferma password-->
+            <div class="mb-3 form-group">
+                <label for="password" class="form-label">Conferma la password</label>
+                <input type="password" class="form-control" id="password" placeholder="Conferma la tua password"
+                    required>
+            </div>
+
+            <!--supereroe preferito-->
+
+            <div class="form-group mb-3">
+                <label for="options">Supereroe preferito</label>
+                <select class="form-select" id="options">
+                    <option selected>Seleziona il Supereroe</option>
+                    <option value="1">NegaChin</option>
+                    <option value="2">Opzione 2</option>
+                    <option value="3">Opzione 3</option>
+                </select>
+            </div>
+
+            <!--registrazione-->
+            <div id="button_accedi">
+                <button type="submit" class="btn btn-danger btn-login">Registrati</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Script di Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>

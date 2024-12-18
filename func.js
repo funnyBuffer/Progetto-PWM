@@ -235,8 +235,65 @@ async function login(res, username, password){
         await client.close();
     }
 }
+/* 
+        DA TESTARE
+    */
+async function profileCards(){
+    let client;
+    try{
+        const connection = await connectToDatabase();
+        const database = connection.db;
+        client = connection.client;
 
+        const token = req.cookies.authToken;
 
+        if(!token){
+            return res.status(403).send({ error: "Accesso non autorizzato" });
+        }
+    
+        jwt.verify(token, process.env.secret_key, async (err, decoded) => {
+            if (err) {
+                return res.status(403).json({ message: "Token non valido" });
+            }
+            const user = await findUser(decoded.username)
+            
+            if(user.found){
+                res.status(200).send({message:"Carte del profilo fornite con successo"})
+                return user.data.cards;
+            }
+        });
+        
+    } catch(error){
+        return res.status(500).message({message:"Errore interno del server"})
+    } finally {
+        await client.close();
+    }
+}
+
+//Bisogna capire come tirare fuori 5 eroi casuali
+/* 
+    DA CONTINUAREEEEEEEEEEEEEEEEEEEEEEEEEEEE
+     */
+function openPack(){
+    const numbers = new Set();
+    
+    while (numbers.size < 5) {
+        const randomNumber = Math.floor(Math.random() * 100) + 1; 
+        numbers.add(randomNumber);
+    }
+
+    return [...numbers]; 
+}
+
+async function addNewTrade(res, user1, cards){
+
+    
+
+}
+
+async function confirmTrade(){
+
+}
 
 module.exports = { addUser,
                    updateUser,

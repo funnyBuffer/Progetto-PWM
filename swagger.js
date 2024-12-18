@@ -9,7 +9,8 @@ const doc = {
   tags: [
     { name: 'Users', description: 'Gestione degli utenti' },
     { name: 'Auth', description: 'Autenticazione e Login' },
-    { name: 'Credits', description: 'Gestione dei crediti utente' }
+    { name: 'Credits', description: 'Gestione dei crediti utente' },
+    { name: 'Trade', description: 'Gestione degli scambi delle carte'}
   ],
   components: {
     schemas: {

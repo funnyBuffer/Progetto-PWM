@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {addUser, findUser, findEmail, deleteUser, updateUser, isInvalidEmail} = require('../func.js');
 
-router.get('/users/findAll', async (req, res) => {
+router.get('/findAll', async (req, res) => {
     /*
     #swagger.tags = ['Users']
     #swagger.summary = 'Ottieni tutti gli utenti'
@@ -26,7 +26,7 @@ router.get('/users/findAll', async (req, res) => {
     }
 })
   
-router.post('/users/add', async (req, res) => {
+router.post('/add', async (req, res) => {
 
     /*
     #swagger.tags = ['Users']
@@ -67,7 +67,7 @@ router.post('/users/add', async (req, res) => {
     await addUser(null, res, username, name, surname, email, password, fav_hero);
 });
 
-router.post('/users/update', async (req, res) => {
+router.post('/update', async (req, res) => {
 
     /*
     #swagger.tags = ['Users']
@@ -84,7 +84,7 @@ router.post('/users/update', async (req, res) => {
     }
 });
 
-router.get('/users/find', async (req, res) => {
+router.get('/find', async (req, res) => {
     /*
     #swagger.tags = ['Users']
     #swagger.summary = 'Trova un utente'
@@ -103,7 +103,7 @@ router.get('/users/find', async (req, res) => {
     }
 })
 
-router.delete('/users/delete', async (req,res) =>{
+router.delete('/delete', async (req,res) =>{
     /*
     #swagger.tags = ['Users']
     #swagger.summary = 'Elimina un utente'
