@@ -25,7 +25,7 @@ router.post('/updatecredits', (req, res) => {
         }
         const user = await findUser(decoded.username)
 
-        const updated_credits = user.data.credits + credits
+        const updated_credits = Number(user.data.credits) + Number(credits)
 
         updateUser(res, user.data.username , null,null,null,null,null,null, updated_credits);
     });
