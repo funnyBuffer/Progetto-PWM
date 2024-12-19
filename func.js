@@ -9,7 +9,7 @@ function isInvalidEmail(email){
     return !emailRegex.test(email); 
 }
 
-async function addUser(db, res, username, name, surname, email, password, fav_hero) {
+async function addUser(res, username, name, surname, email, password, fav_hero) {
 
     try {
         const connection = await connectToDatabase();

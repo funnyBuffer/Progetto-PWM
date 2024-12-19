@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const {addUser, findUser, findEmail, deleteUser, updateUser, isInvalidEmail} = require('../func.js');
+const {connectToDatabase} = require('../config/db');
 
 router.get('/findAll', async (req, res) => {
     /*
@@ -64,7 +65,7 @@ router.post('/add', async (req, res) => {
     res.status(400).send("Email non valida");
     return;
     }
-    await addUser(null, res, username, name, surname, email, password, fav_hero);
+    await addUser(res, username, name, surname, email, password, fav_hero);
 });
 
 router.post('/update', async (req, res) => {
