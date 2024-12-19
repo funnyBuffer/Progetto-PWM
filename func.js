@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 
-const {connectToDatabase} = require('./db');
+const {connectToDatabase} = require('./config/db');
 
 const jwt = require('jsonwebtoken');
 
