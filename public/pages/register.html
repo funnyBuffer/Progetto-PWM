@@ -4,29 +4,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Register</title>
+    <link rel="icon" href="../img/logo.png" type="image/png">
     <!-- Link al CSS di Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Stili personalizzati -->
-    <link rel="stylesheet" href="../css/css_login.css">
+    <link rel="stylesheet" href="../css/css_register.css">
 </head>
 
 <body>
     <div class="background-container"></div>
-    <div class="container login-container">
+    <div class="container register-container">
         <h2 class="text-center mb-4">Registrazione</h2>
         <form method="post">
+            <!--username-->
+            <div class="mb-3 form-group">
+                <label for="text" class="form-label">Username</label>
+                <input type="text" class="form-control" id="username" placeholder="Inserisci il tuo username" required>
+            </div>
+            <!--name-->
+            <div class="mb-3 form-group">
+                <label for="text" class="form-label">Nome</label>
+                <input type="text" class="form-control" id="name" placeholder="Inserisci il tuo nome" required>
+            </div>
+            <!--surname-->
+            <div class="mb-3 form-group">
+                <label for="text" class="form-label">Cognome</label>
+                <input type="text" class="form-control" id="surname" placeholder="Inserisci il tuo cognome" required>
+            </div>
             <!--email-->
             <div class="mb-3 form-group">
                 <label for="email" class="form-label">Email</label>
                 <input type="email" class="form-control" id="email" placeholder="Inserisci la tua email" required>
             </div>
-            <!--username-->
-            <div class="mb-3 form-group">
-                <label for="email" class="form-label">Username</label>
-                <input type="email" class="form-control" id="email" placeholder="Inserisci il tuo username" required>
-            </div>
-
             <!--password-->
             <div class="mb-3 form-group">
                 <label for="password" class="form-label">Password</label>
@@ -36,24 +46,24 @@
             <!--conferma password-->
             <div class="mb-3 form-group">
                 <label for="password" class="form-label">Conferma la password</label>
-                <input type="password" class="form-control" id="password" placeholder="Conferma la tua password"
+                <input type="password" class="form-control" id="conf_password" placeholder="Conferma la tua password"
                     required>
             </div>
 
             <!--supereroe preferito-->
-
             <div class="form-group mb-3">
                 <label for="options">Supereroe preferito</label>
-                <select class="form-select" id="options">
+                <select class="form-select" id="fav_hero">
                     <option selected>Seleziona il Supereroe</option>
-                    <option value="1">NegaChin</option>
+                    <option value="1">Opzione 1</option>
                     <option value="2">Opzione 2</option>
                     <option value="3">Opzione 3</option>
                 </select>
             </div>
-
+            <div id="ErrMessage" class="text-center mb-4"> 
+            </div>
             <!--registrazione-->
-            <div id="button_accedi">
+            <div id="registerButton">
                 <button type="submit" class="btn btn-danger btn-login">Registrati</button>
             </div>
         </form>
@@ -61,6 +71,63 @@
 
     <!-- Script di Bootstrap -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+
+        document.getElementById("registerButton").addEventListener("click", async (event) => {
+            event.preventDefault(); 
+
+            const username = document.getElementById("username").value;
+            const name = document.getElementById("name").value;
+            const surname = document.getElementById("surname").value;
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            const conf_password = document.getElementById("conf_password").value;
+            const fav_hero = document.getElementById("fav_hero").value;
+
+            const apiUrl = "http://localhost:3000/users/add"; 
+
+            const payload = {
+                username: username,
+                name: name,
+                surname: surname,
+                email: email,
+                password: password,
+                fav_hero: fav_hero
+            };
+
+            if(password == conf_password){
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: "POST",
+                        headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log("Registrazione avvenuto con successo:", data);
+                        document.getElementById("ErrMessage").textContent = "Registrazione avvenuta con successo";
+                        document.getElementById("ErrMessage").style.color = "green";
+                    } else {
+                        const errorData = await response.json();
+                        document.getElementById("ErrMessage").textContent = errorData.message;
+                        document.getElementById("ErrMessage").style.color = "red";
+                        return;
+                    }
+                } catch (error) {
+                    console.error("Errore di rete:", error);
+                    document.getElementById("ErrMessage").textContent = "Errore di rete: " + error.message;
+                    document.getElementById("ErrMessage").style.color = "red";
+                }
+            } else {
+                document.getElementById("ErrMessage").textContent = "Le password non corrispondono";
+                document.getElementById("ErrMessage").style.color = "red";
+            }
+        });
+
+    </script>
 
 </body>
 

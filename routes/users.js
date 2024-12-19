@@ -42,27 +42,27 @@ router.post('/add', async (req, res) => {
     }
     /////////// Controlli sulle credenziali ///////////
     if (name.length < 3) {
-        res.status(400).send("Nome troppo corto");
+        res.status(400).send({message:"Nome troppo corto"});
         return;
     } 
     if (surname.length < 3) {
-        res.status(400).send("Cognome troppo corto");
+        res.status(400).send({message:"Cognome troppo corto"});
         return;
     }
     if(password.length < 8){
-        res.status(400).send("Password troppo corta");
+        res.status(400).send({message:"Password troppo corta"});
         return;
     }
     if((await findUser(username)).found){
-        res.status(400).send("Username già esistente");
+        res.status(400).send({message:"Username già esistente"});
         return;
     }
     if((await findEmail(email)).found){
-        res.status(400).send("Email già usata");
+        res.status(400).send({message:"Email già usata"});
         return;
     }
     if (isInvalidEmail(email)) {
-    res.status(400).send("Email non valida");
+    res.status(400).send({message:"Email non valida"});
     return;
     }
     await addUser(res, username, name, surname, email, password, fav_hero);
