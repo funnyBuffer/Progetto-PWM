@@ -7,6 +7,20 @@ require('dotenv').config();
 const app = express()
 const port = process.env.port;
 
+/////////////// DA SISTEMARE/SPOSTARE  ////////////////
+const {fetchMarvelCharacters} = require('./func.js');
+const publicKey = process.env.marvel_public_key;
+const privateKey = process.env.marvel_private_key;
+
+const timestamp = process.env.timestamp;
+const hash = process.env.MD5;
+
+const apiUrl = `https://gateway.marvel.com/v1/public/characters?ts=${timestamp}&apikey=${publicKey}&hash=${hash}`;
+
+fetchMarvelCharacters(apiUrl);
+
+////////////////////////////////////////////////////////
+
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger-output.json');
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
@@ -40,6 +54,9 @@ app.get('/register', (req, res) => {
 });
 
 //// Pagina homepage
+app.get('/home', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'pages', 'homepage.html'));
+});
 
 app.listen(port, () => {
   console.log(`Server in ascolto sulla porta: ${port}`)

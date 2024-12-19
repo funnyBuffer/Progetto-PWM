@@ -295,11 +295,27 @@ async function confirmTrade(){
 
 }
 
+
+// Funzione per effettuare la chiamata e stampare i risultati sistemare / spostare
+async function fetchMarvelCharacters(apiUrl) {
+    try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) {
+            throw new Error(`Errore nella richiesta: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log(data); // Stampa i risultati nel console log
+    } catch (error) {
+        console.error("Errore durante la fetch:", error);
+    }
+}
+
 module.exports = { addUser,
                    updateUser,
                    findUser,
                    findEmail, 
                    deleteUser, 
                    login, 
-                   isInvalidEmail 
+                   isInvalidEmail,
+                   fetchMarvelCharacters
                 };
