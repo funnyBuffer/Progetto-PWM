@@ -19,13 +19,21 @@
     {
       "name": "Credits",
       "description": "Gestione dei crediti utente"
+    },
+    {
+      "name": "Trade",
+      "description": "Gestione degli scambi delle carte"
+    },
+    {
+      "name": "Marvel",
+      "description": "Utilizzo delle API della Marvel"
     }
   ],
   "schemes": [
     "http"
   ],
   "paths": {
-    "/users/findAll": {
+    "/findAll": {
       "get": {
         "tags": [
           "Users"
@@ -42,7 +50,7 @@
         }
       }
     },
-    "/users/add": {
+    "/add": {
       "post": {
         "tags": [
           "Users"
@@ -85,7 +93,7 @@
         }
       }
     },
-    "/users/update": {
+    "/update": {
       "post": {
         "tags": [
           "Users"
@@ -134,7 +142,7 @@
         }
       }
     },
-    "/users/find": {
+    "/find": {
       "get": {
         "tags": [
           "Users"
@@ -151,7 +159,7 @@
         }
       }
     },
-    "/users/delete": {
+    "/delete": {
       "delete": {
         "tags": [
           "Users"

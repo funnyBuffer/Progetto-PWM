@@ -10,7 +10,8 @@ const doc = {
     { name: 'Users', description: 'Gestione degli utenti' },
     { name: 'Auth', description: 'Autenticazione e Login' },
     { name: 'Credits', description: 'Gestione dei crediti utente' },
-    { name: 'Trade', description: 'Gestione degli scambi delle carte'}
+    { name: 'Trade', description: 'Gestione degli scambi delle carte'},
+    { name: 'Marvel', description: 'Utilizzo delle API della Marvel'}
   ],
   components: {
     schemas: {

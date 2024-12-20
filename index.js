@@ -7,20 +7,6 @@ require('dotenv').config();
 const app = express()
 const port = process.env.port;
 
-/////////////// DA SISTEMARE/SPOSTARE  ////////////////
-const {fetchMarvelCharacters} = require('./func.js');
-const publicKey = process.env.marvel_public_key;
-const privateKey = process.env.marvel_private_key;
-
-const timestamp = process.env.timestamp;
-const hash = process.env.MD5;
-
-const apiUrl = `https://gateway.marvel.com/v1/public/characters?ts=${timestamp}&apikey=${publicKey}&hash=${hash}`;
-
-fetchMarvelCharacters(apiUrl);
-
-////////////////////////////////////////////////////////
-
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger-output.json');
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
@@ -35,11 +21,13 @@ const userRoutes = require('./routes/users');
 const authRoutes = require('./routes/auth');
 const creditRoutes = require('./routes/credits');
 const tradeRoutes = require('./routes/trade');
+const marvelRouter = require('./routes/marvel');
 
 app.use('/users', userRoutes);      
 app.use('/auth', authRoutes);       
 app.use('/credits', creditRoutes);  
 app.use('/trade', tradeRoutes);
+app.use('/marvel', marvelRouter);
 
 app.use(express.static(path.join(__dirname, 'public')));
 

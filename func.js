@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const CryptoJS = require("crypto-js");
 
 const {connectToDatabase} = require('./config/db');
 
@@ -58,6 +59,16 @@ async function updateUser(res, old_username, username, name, surname, email, pas
         if (!userResult.found) {
             return res.status(404).send({ error: "Utente non trovato" });
         } 
+        ///Controllo nuove credenziali
+        if(email != null){
+            if(await findEmail(email)) return res.status(409).send({ message: "Email già in uso" });
+        }
+        if(username != null){
+            if(await findUser(username)) return res.status(409).send({ message: "Username già preso" });
+        }
+        if(password != null){
+            if(userResult.data.password == password) return res.status(409).send({ message: "La password nuova deve essere diversa da quella precedente" });
+        }
 
         const existingUser = userResult.data;  
 
@@ -235,6 +246,13 @@ async function login(res, username, password){
         await client.close();
     }
 }
+  
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 /* 
         DA TESTARE
     */
@@ -295,16 +313,18 @@ async function confirmTrade(){
 
 }
 
+function MD5(string){
+    const hash = CryptoJS.MD5(string).toString(CryptoJS.enc.Hex);
+    return hash;
+}
 
-// Funzione per effettuare la chiamata e stampare i risultati sistemare / spostare
-async function fetchMarvelCharacters(apiUrl) {
+function getFromMarvel(url, query, publicApiKey, privateApiKey) {
     try {
-        const response = await fetch(apiUrl);
-        if (!response.ok) {
-            throw new Error(`Errore nella richiesta: ${response.status}`);
-        }
-        const data = await response.json();
-        console.log(data); // Stampa i risultati nel console log
+        var timestamp = Date.now();
+        var parameters = `ts=${timestamp}&apikey=${publicApiKey}&hash=${MD5(timestamp+privateApiKey+publicApiKey)}&`
+        return fetch(`http://gateway.marvel.com/v1/${url}?${parameters}${query}`)
+        .then(response => response.json())
+        .catch(error => console.log('error', error));
     } catch (error) {
         console.error("Errore durante la fetch:", error);
     }
@@ -317,5 +337,5 @@ module.exports = { addUser,
                    deleteUser, 
                    login, 
                    isInvalidEmail,
-                   fetchMarvelCharacters
+                   getFromMarvel
                 };
