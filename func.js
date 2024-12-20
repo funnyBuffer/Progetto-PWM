@@ -304,7 +304,8 @@ function openPack(){
 }
 
 async function addNewTrade(res, user1, cards){
-
+    
+    
     
 
 }

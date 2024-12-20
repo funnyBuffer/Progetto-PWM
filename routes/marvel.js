@@ -15,7 +15,6 @@ router.post('/marvellous', (req, res) => {
     #swagger.summary = 'Effettua una richiesta sulle API Marvel'
     #swagger.description = 'Utilizza una query per ricercare le informazioni messe a disposizione dalla Marvel' 
     */
-
     const { url, query } = req.body;
 
     getFromMarvel(url, query, publicKey, privateKey)
