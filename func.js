@@ -179,49 +179,40 @@ async function deleteUser(username) {
     }
 }
 
-async function login(res, username, password){
+async function login(username, password) {
     let client;
-    try{
+    try {
         const connection = await connectToDatabase();
         const database = connection.db;
         client = connection.client;
 
         const user = await findUser(username);
-        let token; 
 
-        if(user.found){
-            if(user.data.password == crypto.createHash('sha256').update(password).digest('hex')){
-                //generazione di un token
-                const payload = {username}
-                token = jwt.sign(payload, process.env.secret_key, { expiresIn: '1h' });
-            } else {
-                res.status(400).send({message:"Credenziali errate"})
-                return; 
-            }
-        } else{
-            res.status(404).send({message:"Utente non esistente"});
-            return;
+        if (!user.found) {
+            return { success: false, status: 404, message: "Utente non esistente" };
         }
-        res.cookie('authToken', token, {
-            httpOnly: true, // Il cookie è accessibile solo dal server
-            secure: true, // Usa `true` se utilizzi HTTPS
-            sameSite: 'Strict', // Protegge contro CSRF
-            maxAge: 60 * 60 * 1000, // Durata di 1 ora
-          });
-        return res.status(200).send({
-            message:"Autenticazione effettuata"
-        });
 
-    } catch(error){
-        console.log("Errore durante il login:",error);
-        return res.status(500).send({message:"Errore interno del server"})
+        const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
+        if (user.data.password !== hashedPassword) {
+            return { success: false, status: 400, message: "Credenziali errate" };
+        }
+
+        const payload = { username };
+        const token = jwt.sign(payload, process.env.secret_key, { expiresIn: '1h' });
+
+        return { success: true, status: 200, message: "Autenticazione effettuata", token };
+
+    } catch (error) {
+        console.error("Errore durante il login:", error);
+        return { success: false, status: 500, message: "Errore interno del server" };
     } finally {
-        await client.close();
+        if (client) {
+            await client.close();
+        }
     }
 }
-/* 
-        DA TESTARE
-    */
+
+
 async function profileCards(username){
     let client;
     try{
@@ -338,7 +329,6 @@ function getCharacterIds() {
 function scheduleFetchCharacterIds() {
     fetchCharacterIds(); 
     const twelveHours = 12 * 60 * 60 * 1000; 
-    const a = 30 * 1000;
     setInterval(fetchCharacterIds, twelveHours);
 }
 
@@ -358,7 +348,8 @@ function openPack(){
     return pack
 }
 
-async function addNewTrade(res, user1, cards){
+async function addNewTrade(user1, cards){
+    
     
     
 }

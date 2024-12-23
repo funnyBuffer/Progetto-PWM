@@ -47,6 +47,21 @@ app.get('/home', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'pages', 'homepage.html'));
 });
 
+//// Pagina profilo utente
+app.get('/profile', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'pages', 'profile.html'));
+});
+
+//// Pagina shop 
+app.get('/shop', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'pages', 'shop.html'));
+});
+
+//// Pagina shop 
+app.get('/stand', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'pages', 'stand.html'));
+});
+
 //// Aggiornamento ogni 12 ore del file cardsID
 scheduleFetchCharacterIds();
 

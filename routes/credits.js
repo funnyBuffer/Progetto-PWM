@@ -11,6 +11,7 @@ router.post('/updatecredits', (req, res) => {
     #swagger.tags = ['Credits']
     #swagger.summary = 'Aggiorna i crediti di un utente'
     #swagger.description = 'Permette di aggiornare il numero di crediti di un utente.' 
+    #swagger.path = '/credits/updatecredits'
     */
 
     const token = req.cookies.authToken;

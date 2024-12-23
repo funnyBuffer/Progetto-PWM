@@ -8,6 +8,7 @@ router.get('/findAll', async (req, res) => {
     #swagger.tags = ['Users']
     #swagger.summary = 'Ottieni tutti gli utenti'
     #swagger.description = 'Restituisce una lista di tutti gli utenti registrati.'
+    #swagger.path = '/users/findAll'
     */
     let client;
     try{
@@ -33,6 +34,7 @@ router.post('/add', async (req, res) => {
     #swagger.tags = ['Users']
     #swagger.summary = 'Aggiungi un nuovo utente'
     #swagger.description = 'Aggiunge un utente con i dati forniti.'
+    #swagger.path = '/users/add'
     */
 
     const { username, name, surname, email, password, fav_hero } = req.body;
@@ -73,6 +75,7 @@ router.post('/update', async (req, res) => {
     #swagger.tags = ['Users']
     #swagger.summary = 'Modifica un utente'
     #swagger.description = 'Modifica un utente con i dati forniti.'
+    #swagger.path = '/users/update'
     */
     const { old_username, username, name, surname, email, password, fav_hero } = req.body;
 
@@ -84,12 +87,12 @@ router.post('/update', async (req, res) => {
         }
 
         // Controllo nuove credenziali
-        if (email != null && await findEmail(email)) {
-            return res.status(409).send({ message: "Email già in uso" });
-        }
+        //if (email != null && await findEmail(email)) {
+       //     return res.status(409).send({ message: "Email già in uso" });
+       // }
 
-        if (username != null && await findUser(username)) {
-            return res.status(409).send({ message: "Username già preso" });
+        if (username != null && (await findUser(username)).found) {
+            return res.status(409).send({ message: `L'username ${username} è già preso` });
         }
 
         if (password != null && userResult.data.password === password) {
@@ -117,6 +120,7 @@ router.get('/find', async (req, res) => {
     #swagger.tags = ['Users']
     #swagger.summary = 'Trova un utente'
     #swagger.description = 'Trova un utente attraverso l'username.'
+    #swagger.path = '/users/find'
     */
     const{ username } = req.body;
     const userResult = await findUser(username);
@@ -136,6 +140,7 @@ router.delete('/delete', async (req, res) => {
     #swagger.tags = ['Users']
     #swagger.summary = 'Elimina un utente'
     #swagger.description = 'Elimina un utente fornendo l'username e la password.'
+    #swagger.path = '/users/delete'
     */
     const { username, password } = req.body;
 

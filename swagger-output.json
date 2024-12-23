@@ -33,7 +33,7 @@
     "http"
   ],
   "paths": {
-    "/findAll": {
+    "/users/findAll": {
       "get": {
         "tags": [
           "Users"
@@ -50,7 +50,7 @@
         }
       }
     },
-    "/add": {
+    "/users/add": {
       "post": {
         "tags": [
           "Users"
@@ -93,7 +93,7 @@
         }
       }
     },
-    "/update": {
+    "/users/update": {
       "post": {
         "tags": [
           "Users"
@@ -107,9 +107,6 @@
             "schema": {
               "type": "object",
               "properties": {
-                "userId": {
-                  "example": "any"
-                },
                 "old_username": {
                   "example": "any"
                 },
@@ -136,13 +133,22 @@
           }
         ],
         "responses": {
+          "200": {
+            "description": "OK"
+          },
           "404": {
             "description": "Not Found"
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
     },
-    "/find": {
+    "/users/find": {
       "get": {
         "tags": [
           "Users"
@@ -159,7 +165,7 @@
         }
       }
     },
-    "/delete": {
+    "/users/delete": {
       "delete": {
         "tags": [
           "Users"
@@ -184,8 +190,17 @@
           }
         ],
         "responses": {
-          "default": {
-            "description": ""
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -265,6 +280,98 @@
         "responses": {
           "403": {
             "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/add": {
+      "post": {
+        "tags": [
+          "Trade"
+        ],
+        "summary": "Crea una offerta per lo scambio",
+        "description": "Verifica che le carte da scambiare non siano già impiegate in altri scambi e poi crea l",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "cards": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/show": {
+      "get": {
+        "description": "",
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/marvel/marvellous": {
+      "post": {
+        "tags": [
+          "Marvel"
+        ],
+        "summary": "Effettua una richiesta sulle API Marvel",
+        "description": "Utilizza una query per ricercare le informazioni messe a disposizione dalla Marvel",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "example": "any"
+                },
+                "query": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/marvel/unpack": {
+      "get": {
+        "tags": [
+          "Marvel"
+        ],
+        "summary": "Apre un pacchetto di 5 carte",
+        "description": "Fornisce a un utente autenticato 5 carte casuali da aggiungere alla collezione",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }

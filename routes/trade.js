@@ -19,6 +19,7 @@ router.post('/add', async (req, res) => {
     #swagger.tags = ['Trade']
     #swagger.summary = 'Crea una offerta per lo scambio'
     #swagger.description = 'Verifica che le carte da scambiare non siano già impiegate in altri scambi e poi crea l'offerta per lo scambio' 
+    #swagger.path = '/trade/add'
     */
     const {cards} = req.body;
     const token = req.cookies.authToken;
@@ -26,12 +27,20 @@ router.post('/add', async (req, res) => {
         return res.status(403).send({ error: "Accesso non autorizzato" });
     }
     jwt.verify(token, process.env.secret_key, async (err, decoded) => {
+
+
+
         await addTrade(decoded.username, cards) 
     })   
 })
 
 router.get('/show', async (req, res) => {
-
+    /*
+    #swagger.tags = ['Trade']
+    #swagger.summary = 'Mostra le offerte per gli scambi'
+    #swagger.description = 'Fornisce tutte le offerte per i possbili scambi' 
+    #swagger.path = '/trade/show'
+    */
 })
 
 module.exports = router;

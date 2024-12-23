@@ -9,6 +9,7 @@ router.post('/marvellous', (req, res) => {
     #swagger.tags = ['Marvel']
     #swagger.summary = 'Effettua una richiesta sulle API Marvel'
     #swagger.description = 'Utilizza una query per ricercare le informazioni messe a disposizione dalla Marvel' 
+    #swagger.path = '/marvel/marvellous'
     */
     const { url, query } = req.body;
 
@@ -30,6 +31,14 @@ router.post('/marvellous', (req, res) => {
 });
 
 router.get('/unpack', async (req, res) => {
+
+    /*
+    #swagger.tags = ['Marvel']
+    #swagger.summary = 'Apre un pacchetto di 5 carte'
+    #swagger.description = 'Fornisce a un utente autenticato 5 carte casuali da aggiungere alla collezione' 
+    #swagger.path = '/marvel/unpack'
+    */
+
     const token = req.cookies.authToken;
     if (!token) {
         return res.status(403).send({ error: 'Accesso non autorizzato' });
