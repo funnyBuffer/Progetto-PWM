@@ -1,13 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const {getFromMarvel} = require('../func.js');
+const jwt = require('jsonwebtoken');
+const {getFromMarvel, openPack, updateUser, findUser, profileCards} = require('../func.js');
 require('dotenv').config();
-
-const publicKey = process.env.marvel_public_key;
-const privateKey = process.env.marvel_private_key;
-
-const timestamp = process.env.timestamp;
-const hash = process.env.MD5;
 
 router.post('/marvellous', (req, res) => {
     /*
@@ -34,5 +29,39 @@ router.post('/marvellous', (req, res) => {
         });
 });
 
+router.get('/unpack', async (req, res) => {
+    const token = req.cookies.authToken;
+    if (!token) {
+        return res.status(403).send({ error: 'Accesso non autorizzato' });
+    }
+
+    jwt.verify(token, process.env.secret_key, async (err, decoded) => {
+        if (err) {
+            return res.status(403).json({ message: 'Token non valido' });
+        }
+
+        try {
+            const user = await findUser(decoded.username);
+            const cards = openPack();
+            const profile_cards = await profileCards(user.data.username);
+            const updated_cards = [...profile_cards, ...cards];
+
+            const updateResult = await updateUser(
+                user.data.username, 
+                null, null, null, null, null, null, 
+                null, updated_cards, null
+            );
+
+            if (updateResult) {
+                return res.status(200).send({ cards: cards });
+            } else {
+                return res.status(500).send({ error: "Impossibile aggiornare l'utente" });
+            }
+        } catch (error) {
+            console.error("Errore durante l'elaborazione:", error);
+            return res.status(500).send({ error: "Errore interno del server" });
+        }
+    });
+});
 
 module.exports = router;

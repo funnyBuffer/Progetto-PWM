@@ -29,7 +29,6 @@ router.get('/auth', (req, res) => {
     if (!token) {
         return res.status(403).send({ error: 'Accesso non autorizzato' });
     }
-
     try {
         const decoded = jwt.verify(token, process.env.secret_key);
         return res.status(200).send({ message: 'Accesso consentito', user: decoded });

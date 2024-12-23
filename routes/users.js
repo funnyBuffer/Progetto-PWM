@@ -69,19 +69,46 @@ router.post('/add', async (req, res) => {
 });
 
 router.post('/update', async (req, res) => {
-
     /*
     #swagger.tags = ['Users']
     #swagger.summary = 'Modifica un utente'
     #swagger.description = 'Modifica un utente con i dati forniti.'
     */
-    const { userId, old_username, username, name, surname, email, password, fav_hero } = req.body;
+    const { old_username, username, name, surname, email, password, fav_hero } = req.body;
 
-    const userResult = await findUser(old_username);
-    if (userResult.found) {
-        await updateUser(res, userId, old_username, username, name, surname, email, password, fav_hero, 0);
-    } else {
-        return res.status(404).send({ error: "Utente non esistente" });
+    try {
+        const userResult = await findUser(old_username);
+
+        if (!userResult.found) {
+            return res.status(404).send({ error: "Utente non esistente" });
+        }
+
+        // Controllo nuove credenziali
+        if (email != null && await findEmail(email)) {
+            return res.status(409).send({ message: "Email già in uso" });
+        }
+
+        if (username != null && await findUser(username)) {
+            return res.status(409).send({ message: "Username già preso" });
+        }
+
+        if (password != null && userResult.data.password === password) {
+            return res.status(409).send({ message: "La password nuova deve essere diversa da quella precedente" });
+        }
+
+        // Aggiornamento dell'utente
+        const updateResult = await updateUser(
+            old_username, username, name, surname, email, password, fav_hero, 0, null, null
+        );
+
+        if (updateResult) {
+            return res.status(200).send({ message: "Utente aggiornato con successo!" });
+        } else {
+            return res.status(500).send({ error: "Nessun aggiornamento effettuato" });
+        }
+    } catch (error) {
+        console.error("Errore durante l'aggiornamento dell'utente:", error);
+        return res.status(500).send({ error: "Errore interno del server" });
     }
 });
 
@@ -104,14 +131,39 @@ router.get('/find', async (req, res) => {
     }
 })
 
-router.delete('/delete', async (req,res) =>{
+router.delete('/delete', async (req, res) => {
     /*
     #swagger.tags = ['Users']
     #swagger.summary = 'Elimina un utente'
     #swagger.description = 'Elimina un utente fornendo l'username e la password.'
     */
-    const{ username, password} = req.body;
-    await deleteUser(res, username, password);
-})
+    const { username, password } = req.body;
+
+    try {
+        const userResult = await findUser(username);
+
+        if (!userResult.found) {
+            return res.status(404).send({ message: "Utente non trovato" });
+        }
+
+        const user = userResult.data;
+        const isPasswordValid = user.password === crypto.createHash('sha256').update(password).digest('hex');
+
+        if (!isPasswordValid) {
+            return res.status(401).send({ message: "Password non valida" });
+        }
+
+        const deleteSuccess = await deleteUser(username);
+
+        if (deleteSuccess) {
+            return res.status(200).send({ message: "Utente eliminato con successo" });
+        } else {
+            return res.status(500).send({ message: "Errore durante l'eliminazione dell'utente" });
+        }
+    } catch (error) {
+        console.error("Errore durante la richiesta di eliminazione:", error);
+        return res.status(500).send({ message: "Errore interno del server" });
+    }
+});
 
 module.exports = router;

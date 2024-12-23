@@ -26,7 +26,7 @@ router.post('/add', async (req, res) => {
         return res.status(403).send({ error: "Accesso non autorizzato" });
     }
     jwt.verify(token, process.env.secret_key, async (err, decoded) => {
-        await addTrade(res, decoded.username, cards) 
+        await addTrade(decoded.username, cards) 
     })   
 })
 

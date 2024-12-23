@@ -20,7 +20,7 @@ function isInvalidEmail(email){
     return !emailRegex.test(email); 
 }
 
-async function addUser(res, username, name, surname, email, password, fav_hero) {
+async function addUser(username, name, surname, email, password, fav_hero) {
 
     try {
         const connection = await connectToDatabase();
@@ -41,46 +41,26 @@ async function addUser(res, username, name, surname, email, password, fav_hero) 
             password,
             credits: 0,
             cards: [],
-            fav_hero
+            fav_hero,
+            offer_cards: []
         };
 
         const result = await database.collection("Users").insertOne(user);
 
-        res.status(201).send({
-            message: "Utente aggiunto con successo!",
-            userId: result.insertedId,
-        });
-
         client.close();
     } catch (err) {
         console.error("Errore durante l'aggiunta dell'utente:", err);
-        res.status(500).send({ error: "Errore con la connessione al database" });
     }
 }
 
-async function updateUser(res, old_username, username, name, surname, email, password, fav_hero, credits) {
+async function updateUser(old_username, username, name, surname, email, password, fav_hero, credits, cards, offer_cards) {
     try {
         const connection = await connectToDatabase();
         const database = connection.db;
         const client = connection.client;
 
         const userResult = await findUser(old_username);
-
-        if (!userResult.found) {
-            return res.status(404).send({ error: "Utente non trovato" });
-        } 
-        ///Controllo nuove credenziali
-        if(email != null){
-            if(await findEmail(email)) return res.status(409).send({ message: "Email già in uso" });
-        }
-        if(username != null){
-            if(await findUser(username)) return res.status(409).send({ message: "Username già preso" });
-        }
-        if(password != null){
-            if(userResult.data.password == password) return res.status(409).send({ message: "La password nuova deve essere diversa da quella precedente" });
-        }
-
-        const existingUser = userResult.data;  
+        const existingUser = userResult.data;
 
         const updates = {
             username,
@@ -88,8 +68,10 @@ async function updateUser(res, old_username, username, name, surname, email, pas
             surname,
             email,
             password,
+            credits,
+            cards,
             fav_hero,
-            credits
+            offer_cards
         };
 
         const filteredUpdates = Object.fromEntries(
@@ -98,34 +80,27 @@ async function updateUser(res, old_username, username, name, surname, email, pas
 
         const updateDoc = {
             $set: {
-                ...existingUser,  
-                ...filteredUpdates  
+                ...existingUser,
+                ...filteredUpdates
             }
         };
 
         const result = await database.collection("Users").updateOne(
-            { _id: userResult.data._id },  
-            updateDoc  
+            { _id: userResult.data._id },
+            updateDoc
         );
 
-        if (result.modifiedCount > 0) {
-            res.status(200).send({
-                message: "Utente aggiornato con successo!"
-            });
-        } else {
-            res.status(404).send({ error: "Nessun aggiornamento effettuato" });
-        }
-
         client.close();
+
+        return result.modifiedCount > 0;
     } catch (err) {
         console.error("Errore durante l'aggiornamento dell'utente:", err);
-        res.status(500).send({ error: "Errore con la connessione al database" });
+        throw new Error("Errore con la connessione al database");
     }
 }
 
 
-//il filter è eseguita sull'username
-async function findUser(filter) { 
+async function findUser(username) { 
     let client;
     try {
         const connection = await connectToDatabase();
@@ -133,7 +108,7 @@ async function findUser(filter) {
         client = connection.client;
         
         // Cerca l'utente
-        const user = await database.collection("Users").findOne({ username: filter });
+        const user = await database.collection("Users").findOne({ username: username });
 
         if (user) {
             return { found: true, data: user }; 
@@ -176,35 +151,23 @@ async function findEmail(filter) {
     }
 }
 
-async function deleteUser(res, username, password) {
+async function deleteUser(username) {
     let client;
     try {
         const connection = await connectToDatabase();
         const database = connection.db;
         client = connection.client;
 
-        const user = await database.collection("Users").findOne({ username });
-
-        if (!user) {
-            return res.status(404).send({ message: "Utente non trovato" });
-        }
-
-        isPasswordValid = user.password == crypto.createHash('sha256').update(password).digest('hex');
-
-        if (!isPasswordValid) {
-            return res.status(401).send({ message: "Password non valida" });
-        }
-
         const deleteResult = await database.collection("Users").deleteOne({ username });
 
         if (deleteResult.deletedCount === 1) {
-            return res.status(200).send({ message: "Utente eliminato con successo" });
+            return true; // Utente eliminato con successo
         } else {
-            return res.status(500).send({ message: "Errore durante l'eliminazione dell'utente" });
+            return false; // Nessuna eliminazione effettuata
         }
     } catch (error) {
         console.error("Errore durante la cancellazione dell'utente:", error);
-        return res.status(500).send({ message: "Errore interno del server" });
+        return;
     } finally {
         if (client) {
             try {
@@ -259,33 +222,40 @@ async function login(res, username, password){
 /* 
         DA TESTARE
     */
-async function profileCards(){
+async function profileCards(username){
     let client;
     try{
         const connection = await connectToDatabase();
         const database = connection.db;
         client = connection.client;
 
-        const token = req.cookies.authToken;
-
-        if(!token){
-            return res.status(403).send({ error: "Accesso non autorizzato" });
-        }
-    
-        jwt.verify(token, process.env.secret_key, async (err, decoded) => {
-            if (err) {
-                return res.status(403).json({ message: "Token non valido" });
-            }
-            const user = await findUser(decoded.username)
+        const user = await findUser(username)
             
-            if(user.found){
-                res.status(200).send({message:"Carte del profilo fornite con successo"})
-                return user.data.cards;
+        if (user.found) {
+            let cards = user.data.cards;
+
+            if (Array.isArray(cards)) {
+                return cards;
+            } else if (typeof cards === "string") {
+                try {
+                    const parsedCards = JSON.parse(cards);
+                    if (Array.isArray(parsedCards)) {
+                        return parsedCards;
+                    }
+                } catch (err) {
+                    console.error("Errore nel parsing delle card:", err);
+                }
+            } else if (typeof cards === "object" && cards !== null) {
+                return Object.values(cards);
             }
-        });
-        
+
+            console.error("Le card non sono un array valido:", cards);
+            return [];
+        }
+ 
     } catch(error){
-        return res.status(500).message({message:"Errore interno del server"})
+        console.log("Errore interno del server");
+        return; 
     } finally {
         await client.close();
     }
@@ -383,7 +353,7 @@ function openPack(){
     const pack = [];
     let i = 0;
     for(;i < 5; i++){
-        pack[i] = getRandomInt(0, AllCards.length);
+        pack[i] = AllCards[getRandomInt(0, AllCards.length)];
     }
     return pack
 }
@@ -407,5 +377,6 @@ module.exports = { addUser,
                    getFromMarvel,
                    scheduleFetchCharacterIds,
                    getCharacterIds, 
-                   openPack
+                   openPack,
+                   profileCards
                 };
