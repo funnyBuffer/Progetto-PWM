@@ -17,7 +17,7 @@ router.post('/marvellous', (req, res) => {
     */
     const { url, query } = req.body;
 
-    getFromMarvel(url, query, publicKey, privateKey)
+    getFromMarvel(url, query)
         .then((result) => {
             res.json({
                 success: true,

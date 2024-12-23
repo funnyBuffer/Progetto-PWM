@@ -1,9 +1,19 @@
 const crypto = require('crypto');
 const CryptoJS = require("crypto-js");
+const path = require('path');
+const fs = require('fs');
 
 const {connectToDatabase} = require('./config/db');
 
 const jwt = require('jsonwebtoken');
+
+const publicApiKey = '7b6a018198f54a575f355e4641226908';
+const privateApiKey = '1f48c7f19021c0a03bd329a8d9247471135fdf1e';
+
+
+//////////////////////////////////////////////
+/*                  UTENTE                  */
+//////////////////////////////////////////////
 
 function isInvalidEmail(email){
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -246,13 +256,6 @@ async function login(res, username, password){
         await client.close();
     }
 }
-  
-function getRandomInt(min, max) {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
 /* 
         DA TESTARE
     */
@@ -288,38 +291,15 @@ async function profileCards(){
     }
 }
 
-//Bisogna capire come tirare fuori 5 eroi casuali
-/* 
-    DA CONTINUAREEEEEEEEEEEEEEEEEEEEEEEEEEEE
-     */
-function openPack(){
-    const numbers = new Set();
-    
-    while (numbers.size < 5) {
-        const randomNumber = Math.floor(Math.random() * 100) + 1; 
-        numbers.add(randomNumber);
-    }
-
-    return [...numbers]; 
-}
-
-async function addNewTrade(res, user1, cards){
-    
-    
-    
-
-}
-
-async function confirmTrade(){
-
-}
+/////////////////////////////////////////////
+/*                 MARVEL                  */
+/////////////////////////////////////////////
 
 function MD5(string){
-    const hash = CryptoJS.MD5(string).toString(CryptoJS.enc.Hex);
-    return hash;
+    return CryptoJS.MD5(string).toString(CryptoJS.enc.Hex);
 }
 
-function getFromMarvel(url, query, publicApiKey, privateApiKey) {
+function getFromMarvel(url, query) {
     try {
         var timestamp = Date.now();
         var parameters = `ts=${timestamp}&apikey=${publicApiKey}&hash=${MD5(timestamp+privateApiKey+publicApiKey)}&`
@@ -331,6 +311,92 @@ function getFromMarvel(url, query, publicApiKey, privateApiKey) {
     }
 }
 
+async function fetchCharacterIds() {
+    const limit = 100; 
+    let offset = 0;
+    let total = 0;
+    const characterIds = [];
+
+    try {
+        do {
+            const result = await getFromMarvel(
+                'public/characters',
+                `limit=${limit}&offset=${offset}`,
+            );
+
+            if (result && result.data && result.data.results) {
+                const data = result.data;
+                total = data.total;
+                offset += limit;
+
+                data.results.forEach(character => {
+                    characterIds.push(character.id);
+                });
+            } else {
+                console.error('Nessun dato trovato o errore nella risposta');
+                break;
+            }
+        } while (offset < total);
+
+        // Salvo gli ID nel file JSON
+        const filePath = path.join(__dirname, 'cardsID.json');
+        fs.writeFileSync(filePath, JSON.stringify(characterIds, null, 2));
+    } catch (error) {
+        console.error('Errore durante il recupero degli ID dei personaggi:', error);
+        throw error;
+    }
+}
+
+function getCharacterIds() {
+    const filePath = path.join(__dirname, 'cardsID.json');
+
+    try {
+        if (fs.existsSync(filePath)) {
+            const fileContent = fs.readFileSync(filePath, 'utf-8');
+            const characterIds = JSON.parse(fileContent);
+            return characterIds; 
+        } else {
+            console.error('Il file cardsID.json non esiste.');
+            return []; 
+        }
+    } catch (error) {
+        console.error('Errore durante la lettura del file cardsID.json:', error);
+        throw error;
+    }
+}
+
+function scheduleFetchCharacterIds() {
+    fetchCharacterIds(); 
+    const twelveHours = 12 * 60 * 60 * 1000; 
+    const a = 30 * 1000;
+    setInterval(fetchCharacterIds, twelveHours);
+}
+
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function openPack(){
+    AllCards = getCharacterIds();
+    const pack = [];
+    let i = 0;
+    for(;i < 5; i++){
+        pack[i] = getRandomInt(0, AllCards.length);
+    }
+    return pack
+}
+
+async function addNewTrade(res, user1, cards){
+    
+    
+}
+
+async function confirmTrade(){
+
+}
+
 module.exports = { addUser,
                    updateUser,
                    findUser,
@@ -338,5 +404,8 @@ module.exports = { addUser,
                    deleteUser, 
                    login, 
                    isInvalidEmail,
-                   getFromMarvel
+                   getFromMarvel,
+                   scheduleFetchCharacterIds,
+                   getCharacterIds, 
+                   openPack
                 };

@@ -1,6 +1,7 @@
 const express = require('express')
 const cookieParser = require('cookie-parser');
 const path = require('path');
+const {scheduleFetchCharacterIds} = require('./func.js');
 
 require('dotenv').config();
 
@@ -45,6 +46,9 @@ app.get('/register', (req, res) => {
 app.get('/home', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'pages', 'homepage.html'));
 });
+
+//// Aggiornamento ogni 12 ore del file cardsID
+scheduleFetchCharacterIds();
 
 app.listen(port, () => {
   console.log(`Server in ascolto sulla porta: ${port}`)
