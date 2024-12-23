@@ -59,6 +59,10 @@
                 console.error('Errore nella richiesta API:', error);
             });
         }
+        
+        getRandomRecords(apiUrl, numToSelect, body)
+        .then(randomRecords => console.log("Record casuali selezionati:", randomRecords))
+        .catch(error => console.error(error));
         testMarvelApi();
     </script>
 
