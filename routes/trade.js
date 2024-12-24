@@ -14,37 +14,41 @@ const trade = {
 */
 
 router.post('/add', async (req, res) => {
-    /*
-    #swagger.tags = ['Trade']
-    #swagger.summary = 'Crea una offerta per lo scambio'
-    #swagger.description = 'Verifica che le carte da scambiare non siano già impiegate in altri scambi e poi crea l'offerta per lo scambio' 
-    #swagger.path = '/trade/add'
-    */
-    const {cards} = req.body;
+    const { cards } = req.body;
     const token = req.cookies.authToken;
-    if(!token){
+    if (!token) {
         return res.status(403).send({ error: "Accesso non autorizzato" });
     }
+
     jwt.verify(token, process.env.secret_key, async (err, decoded) => {
-        const user = await findUser(decoded.username);
-        const user_cards = await profileCards(user.data.username);
-        // Controlli sulle carte da scambiare
-        // Devo controllare che l'utente possa offrire solo carte di cui ha almeno 2 copie
-        if(!cards.every(card =>  countOccurrences(user_cards, card) >= 2)){
-            return res.status(400).send({ message: "Non puoi offrire carte di cui hai meno di 2 copie" });
+        if (err) {
+            return res.status(403).send({ error: "Token non valido" });
         }
 
+        try {
+            const user = await findUser(decoded.username);
+            if (!user.found) {
+                return res.status(404).send({ error: "Utente non trovato" });
+            }
 
-        await addNewTrade(user.data.username, cards).then((result) => {
-            if(result.success){
+            const occurrences = await Promise.all(cards.map(card => countOccurrences(user.data.username, card)));
+            if (!occurrences.every(count => count >= 2)) {
+                return res.status(400).send({ message: "Non puoi offrire carte di cui hai meno di 2 copie" });
+            }
+
+            const result = await addNewTrade(user.data.username, cards);
+            if (result.success) {
                 return res.status(200).send({ message: "Trade inserito con successo" });
             } else {
                 return res.status(500).send({ message: "Errore durante l'inserimento del trade." });
             }
-        }); 
+        } catch (error) {
+            console.error("Errore nell'elaborazione del trade:", error);
+            return res.status(500).send({ message: "Errore interno del server." });
+        }
+    });
+});
 
-    })   
-})
 
 router.get('/show', async (req, res) => {
     /*

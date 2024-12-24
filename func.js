@@ -215,7 +215,6 @@ async function login(username, password) {
 
 async function profileCards(username) {
     const user = await findUser(username);
-    
     if (user.found) {
         let cards = user.data.cards;
 
@@ -324,6 +323,7 @@ function openPack(){
     for(;i < 5; i++){
         pack[i] = AllCards[getRandomInt(0, AllCards.length)];
     }
+
     return pack
 }
 
@@ -364,10 +364,6 @@ async function mergeCards(username, newCards) {
     } 
 }
 
-
-
-
-
 async function addNewTrade(user1, cards) {
     let client;
     try {
@@ -383,21 +379,30 @@ async function addNewTrade(user1, cards) {
 
         const result = await database.collection("Trades").insertOne(trade); 
 
-        // Tolgo le cards dallo user1
         for (const card of cards) {
             const cardString = card.toString();
-            const succede = await database.collection("Users").updateOne(
-                { username: user1 },
-                { $pull: { cards: cardString } } 
+
+            // Decremento la quantità della carta
+            const updateResult = await database.collection("Users").updateOne(
+                { username: user1, "cards.card": cardString },
+                { $inc: { "cards.$.quantity": -1 } }
             );
-            console.log(succede)
+
+            // Se la quantità arriva a 0, rimuovo completamente la carta
+            if (updateResult.modifiedCount > 0) {
+                await database.collection("Users").updateOne(
+                    { username: user1, "cards.card": cardString, "cards.quantity": 0 },
+                    { $pull: { cards: { card: cardString } } }
+                );
+            }
         }
         
-        // Reinserisco le cards nell'array offer_cards
-         for (const card of cards) {
+        for (const card of cards) {
+            const cardString = card.toString();
+
             await database.collection("Users").updateOne(
                 { username: user1 },
-                { $push: { offer_cards: card } } // Aggiungo la card all'array offer_cards
+                { $push: { offer_cards: { card: cardString, quantity: 1 } } }
             );
         } 
 
@@ -419,8 +424,8 @@ async function addNewTrade(user1, cards) {
 
 async function countOccurrences(username, card) {
     const cardProfile = await profileCards(username);  
-
-    return cardProfile[card.toString()] || 0;
+    const targetCard = cardProfile.find(item => item.card === card.toString());
+    return targetCard ? targetCard.quantity : 0;
 }
 
 
