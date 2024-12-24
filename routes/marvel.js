@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const {getFromMarvel, openPack, updateUser, findUser, profileCards} = require('../func.js');
+const {getFromMarvel, openPack, updateUser, findUser, profileCards, mergeCards} = require('../func.js');
 require('dotenv').config();
 
 router.post('/marvellous', (req, res) => {
@@ -51,26 +51,16 @@ router.get('/unpack', async (req, res) => {
 
         try {
             const user = await findUser(decoded.username);
-            const cards = openPack();
-            const profile_cards = await profileCards(user.data.username);
-            const updated_cards = [...profile_cards, ...cards];
+            const cards = openPack(); 
+            await mergeCards(user.data.username, cards);
 
-            const updateResult = await updateUser(
-                user.data.username, 
-                null, null, null, null, null, null, 
-                null, updated_cards, null
-            );
-
-            if (updateResult) {
-                return res.status(200).send({ cards: cards });
-            } else {
-                return res.status(500).send({ error: "Impossibile aggiornare l'utente" });
-            }
+            return res.status(200).send({ cards: cards });
         } catch (error) {
             console.error("Errore durante l'elaborazione:", error);
             return res.status(500).send({ error: "Errore interno del server" });
         }
     });
 });
+
 
 module.exports = router;

@@ -21,11 +21,11 @@ function isInvalidEmail(email){
 }
 
 async function addUser(username, name, surname, email, password, fav_hero) {
-
+    let client;
     try {
         const connection = await connectToDatabase();
         const database = connection.db;
-        const client = connection.client;
+        client = connection.client;
 
         // cifratura password //
 
@@ -47,9 +47,17 @@ async function addUser(username, name, surname, email, password, fav_hero) {
 
         const result = await database.collection("Users").insertOne(user);
 
-        client.close();
+        if (result.acknowledged) {
+            return { success: true };
+        } else { 
+            return { success: false };
+        }
     } catch (err) {
         console.error("Errore durante l'aggiunta dell'utente:", err);
+    } finally {
+        if (client) {
+            await client.close();
+        }
     }
 }
 
@@ -180,11 +188,8 @@ async function deleteUser(username) {
 }
 
 async function login(username, password) {
-    let client;
+    
     try {
-        const connection = await connectToDatabase();
-        const database = connection.db;
-        client = connection.client;
 
         const user = await findUser(username);
 
@@ -205,50 +210,24 @@ async function login(username, password) {
     } catch (error) {
         console.error("Errore durante il login:", error);
         return { success: false, status: 500, message: "Errore interno del server" };
-    } finally {
-        if (client) {
-            await client.close();
-        }
-    }
+    } 
 }
 
+async function profileCards(username) {
+    const user = await findUser(username);
+    
+    if (user.found) {
+        let cards = user.data.cards;
 
-async function profileCards(username){
-    let client;
-    try{
-        const connection = await connectToDatabase();
-        const database = connection.db;
-        client = connection.client;
-
-        const user = await findUser(username)
-            
-        if (user.found) {
-            let cards = user.data.cards;
-
-            if (Array.isArray(cards)) {
-                return cards;
-            } else if (typeof cards === "string") {
-                try {
-                    const parsedCards = JSON.parse(cards);
-                    if (Array.isArray(parsedCards)) {
-                        return parsedCards;
-                    }
-                } catch (err) {
-                    console.error("Errore nel parsing delle card:", err);
-                }
-            } else if (typeof cards === "object" && cards !== null) {
-                return Object.values(cards);
-            }
-
-            console.error("Le card non sono un array valido:", cards);
+        if (Array.isArray(cards)) {
+            return cards;
+        } else {
+            console.error("L'utente non ha ancora cards");
             return [];
         }
- 
-    } catch(error){
-        console.log("Errore interno del server");
-        return; 
-    } finally {
-        await client.close();
+    } else {
+        console.error("Utente non trovato.");
+        return [];
     }
 }
 
@@ -348,11 +327,102 @@ function openPack(){
     return pack
 }
 
-async function addNewTrade(user1, cards){
-    
-    
-    
+async function mergeCards(username, newCards) {
+    // Conta le occorrenze di ciascuna carta
+    const cardCount = newCards.reduce((acc, card) => {
+        const cardString = card.toString();
+        acc[cardString] = (acc[cardString] || 0) + 1;
+        return acc;
+    }, {});
+
+    const userCardProfile = await profileCards(username); 
+    const connection = await connectToDatabase();
+    const database = connection.db;
+
+    try {
+        // Scorri tutte le nuove carte e le occorrenze
+        for (const [cardString, count] of Object.entries(cardCount)) {
+            // Verifica se la carta esiste già nel profilo dell'utente
+            const existingCardIndex = userCardProfile.findIndex(item => item.card === cardString);
+
+            if (existingCardIndex !== -1) {
+                // Se la carta esiste già, incrementa la quantità
+                await database.collection("Users").updateOne(
+                    { username: username, "cards.card": cardString },
+                    { $inc: { "cards.$.quantity": count } }
+                );
+            } else {
+                // Se la carta non esiste, la aggiungi con la quantità corrispondente
+                await database.collection("Users").updateOne(
+                    { username: username },
+                    { $push: { cards: { card: cardString, quantity: count } } }
+                );
+            }
+        }
+    } catch (error) {
+        console.error("Errore durante la fusione delle carte:", error);
+    } 
 }
+
+
+
+
+
+async function addNewTrade(user1, cards) {
+    let client;
+    try {
+        const connection = await connectToDatabase();
+        const database = connection.db;
+        client = connection.client;
+        
+        const trade = {
+            user1: { username: user1, offered_cards: [cards] },
+            user2: { username: null , offered_cards: [] },
+            status: 'pending'
+        };
+
+        const result = await database.collection("Trades").insertOne(trade); 
+
+        // Tolgo le cards dallo user1
+        for (const card of cards) {
+            const cardString = card.toString();
+            const succede = await database.collection("Users").updateOne(
+                { username: user1 },
+                { $pull: { cards: cardString } } 
+            );
+            console.log(succede)
+        }
+        
+        // Reinserisco le cards nell'array offer_cards
+         for (const card of cards) {
+            await database.collection("Users").updateOne(
+                { username: user1 },
+                { $push: { offer_cards: card } } // Aggiungo la card all'array offer_cards
+            );
+        } 
+
+        if (result.acknowledged) {
+            return { success: true };
+        } else {
+            return { success: false };
+        }
+    } catch (error) {
+        console.error("Errore durante la creazione del trade:", error);
+        return { success: false, message: "Errore interno del server." };
+    } finally {
+        if (client) {
+            await client.close();
+        }
+    }
+}
+
+
+async function countOccurrences(username, card) {
+    const cardProfile = await profileCards(username);  
+
+    return cardProfile[card.toString()] || 0;
+}
+
 
 async function confirmTrade(){
 
@@ -369,5 +439,8 @@ module.exports = { addUser,
                    scheduleFetchCharacterIds,
                    getCharacterIds, 
                    openPack,
-                   profileCards
+                   profileCards,
+                   addNewTrade,
+                   countOccurrences,
+                   mergeCards
                 };

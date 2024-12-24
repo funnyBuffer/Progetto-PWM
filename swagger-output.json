@@ -205,13 +205,13 @@
         }
       }
     },
-    "/login": {
+    "/auth/login": {
       "post": {
         "tags": [
           "Auth"
         ],
         "summary": "Effettua il login",
-        "description": "Verifica le credenziali e permette l",
+        "description": "Verifica le credenziali e permette l\\'accesso.",
         "parameters": [
           {
             "name": "body",
@@ -236,7 +236,7 @@
         }
       }
     },
-    "/auth": {
+    "/auth/auth": {
       "get": {
         "tags": [
           "Auth"
@@ -256,7 +256,7 @@
         }
       }
     },
-    "/updatecredits": {
+    "/credits/updatecredits": {
       "post": {
         "tags": [
           "Credits"
@@ -284,7 +284,7 @@
         }
       }
     },
-    "/add": {
+    "/trade/add": {
       "post": {
         "tags": [
           "Trade"
@@ -312,9 +312,13 @@
         }
       }
     },
-    "/show": {
+    "/trade/show": {
       "get": {
-        "description": "",
+        "tags": [
+          "Trade"
+        ],
+        "summary": "Mostra le offerte per gli scambi",
+        "description": "Fornisce tutte le offerte per i possbili scambi",
         "responses": {
           "default": {
             "description": ""

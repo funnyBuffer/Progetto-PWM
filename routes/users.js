@@ -67,7 +67,13 @@ router.post('/add', async (req, res) => {
     res.status(400).send({message:"Email non valida"});
     return;
     }
-    await addUser(res, username, name, surname, email, password, fav_hero);
+    await addUser(username, name, surname, email, password, fav_hero).then((result) => {
+        if(result.success){
+            res.status(200).send({message:"Utente aggiunto con successo"});
+        } else {
+            res.status(500).send({message:"Errore durante l'aggiunta dell'utente"});
+        }
+    });
 });
 
 router.post('/update', async (req, res) => {
