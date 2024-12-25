@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const CryptoJS = require("crypto-js");
 const path = require('path');
 const fs = require('fs');
+const { ObjectId } = require('mongodb');
 
 const {connectToDatabase} = require('./config/db');
 
@@ -323,7 +324,7 @@ function openPack(){
     for(;i < 5; i++){
         pack[i] = AllCards[getRandomInt(0, AllCards.length)];
     }
-
+    return [700, 700, 700, 450, 450]
     return pack
 }
 
@@ -372,39 +373,22 @@ async function addNewTrade(user1, cards) {
         client = connection.client;
         
         const trade = {
-            user1: { username: user1, offered_cards: [cards] },
-            user2: { username: null , offered_cards: [] },
+            user1: { 
+                username: user1, 
+                offered_cards: [cards] 
+            },
+            user2: [
+                {
+                    username: null,
+                    offered_cards: []
+                }
+            ],
             status: 'pending'
         };
 
         const result = await database.collection("Trades").insertOne(trade); 
 
-        for (const card of cards) {
-            const cardString = card.toString();
-
-            // Decremento la quantità della carta
-            const updateResult = await database.collection("Users").updateOne(
-                { username: user1, "cards.card": cardString },
-                { $inc: { "cards.$.quantity": -1 } }
-            );
-
-            // Se la quantità arriva a 0, rimuovo completamente la carta
-            if (updateResult.modifiedCount > 0) {
-                await database.collection("Users").updateOne(
-                    { username: user1, "cards.card": cardString, "cards.quantity": 0 },
-                    { $pull: { cards: { card: cardString } } }
-                );
-            }
-        }
-        
-        for (const card of cards) {
-            const cardString = card.toString();
-
-            await database.collection("Users").updateOne(
-                { username: user1 },
-                { $push: { offer_cards: { card: cardString, quantity: 1 } } }
-            );
-        } 
+        await updateCards(user1, cards);
 
         if (result.acknowledged) {
             return { success: true };
@@ -421,6 +405,39 @@ async function addNewTrade(user1, cards) {
     }
 }
 
+async function updateCards(user, cards){
+    try{
+        const connection = connectToDatabase();
+        const database = connection.db;
+        for (const card of cards) {
+            const cardString = card.toString();
+
+                // Decremento la quantità della carta
+            const updateResult = await database.collection("Users").updateOne(
+                { username: user, "cards.card": cardString },
+                { $inc: { "cards.$.quantity": -1 } }
+            );
+
+            // Se la quantità arriva a 0, rimuovo completamente la carta
+            if (updateResult.modifiedCount > 0) {
+                await database.collection("Users").updateOne(
+                    { username: user, "cards.card": cardString, "cards.quantity": 0 },
+                    { $pull: { cards: { card: cardString } } }
+                );
+            }
+        }
+        // Aggiungo le carte dentro offer cards
+        for (const card of cards) {
+            const cardString = card.toString();
+            await database.collection("Users").updateOne(
+                { username: user },
+                { $push: { offer_cards: { card: cardString, quantity: 1 } } }
+            );
+        } 
+    } catch (error){
+        return { success: false, message: "Errore interno del server." };  
+    }
+} 
 
 async function countOccurrences(username, card) {
     const cardProfile = await profileCards(username);  
@@ -428,6 +445,81 @@ async function countOccurrences(username, card) {
     return targetCard ? targetCard.quantity : 0;
 }
 
+async function addOffer(user2, cards, trade_id) {
+    let client;
+    try {
+        const connection = await connectToDatabase();
+        const database = connection.db;
+        client = connection.client;
+
+        const trade = await findTrade(trade_id);
+
+        if (!trade.found) {
+            console.log("Trade non trovato");
+            return { success: false, message: "Trade non trovato" };
+        }
+
+        // Verifica che `user2` sia un array
+        if (!Array.isArray(trade.data.user2)) {
+            trade.data.user2 = [];
+        }
+
+        // Controlla se l'utente esiste già nell'array `user2`
+        const userAlreadyExists = trade.data.user2.some(user => user.username === user2);
+
+        if (userAlreadyExists) {
+            return { success: false, message: "Il secondo utente è già presente in questo trade" };
+        }
+
+        // Crea il nuovo utente da aggiungere
+        const newUser = {
+            username: user2,
+            offered_cards: cards
+        };
+
+        // Aggiorna il trade nel database
+        const tradeObjectId = new ObjectId(trade_id);
+        const updateResult = await database.collection("Trades").updateOne(
+            { _id: tradeObjectId },
+            { $push: { user2: newUser } } // Aggiunge il nuovo utente all'array `user2`
+        );
+
+        // Aggiorna le carte dell'utente
+        await updateCards(user2, cards);
+
+        // Controlla se l'aggiornamento è andato a buon fine
+        if (updateResult.modifiedCount > 0) {
+            return { success: true, message: "Trade aggiornato con successo" };
+        } else {
+            return { success: false, message: "Impossibile aggiornare il trade" };
+        }
+    } catch (error) {
+        console.error("Errore:", error);
+        return { success: false, message: "Errore interno del server." };
+    } finally {
+        if (client) {
+            await client.close();
+        }
+    }
+}
+
+async function findTrade(trade_id) {
+    try{
+        const connection = await connectToDatabase();
+        const database = connection.db;
+        const tradeObjectId = ObjectId.createFromHexString(trade_id);
+        const trade = await database.collection("Trades").findOne({ _id: tradeObjectId });
+
+        if(trade){
+            return {found: true, data: trade}
+        } else {
+            return {found: false}
+        }
+    } catch(error){
+        console.log("Errore:", error);
+        return {found: false, message: "Errore durante la ricerca del trade"}
+    } 
+}
 
 async function confirmTrade(){
 
@@ -447,5 +539,6 @@ module.exports = { addUser,
                    profileCards,
                    addNewTrade,
                    countOccurrences,
-                   mergeCards
+                   mergeCards,
+                   addOffer
                 };
