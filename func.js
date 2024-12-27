@@ -321,10 +321,10 @@ function openPack(){
     AllCards = getCharacterIds();
     const pack = [];
     let i = 0;
-    for(;i < 5; i++){
+    for(;i < 500; i++){
         pack[i] = AllCards[getRandomInt(0, AllCards.length)];
     }
-    return [700, 700, 700, 450, 450]
+   // return [633, 633, 800, 800]
     return pack
 }
 
@@ -388,7 +388,7 @@ async function addNewTrade(user1, cards) {
 
         const result = await database.collection("Trades").insertOne(trade); 
 
-        await updateCards(user1, cards);
+        await updateCardsforOffer(user1, cards);
 
         if (result.acknowledged) {
             return { success: true };
@@ -405,7 +405,7 @@ async function addNewTrade(user1, cards) {
     }
 }
 
-async function updateCards(user, cards){
+async function updateCardsforOffer(user, cards){
     try{
         const connection = connectToDatabase();
         const database = connection.db;
@@ -439,6 +439,22 @@ async function updateCards(user, cards){
     }
 } 
 
+async function updateCardsforConfirm(user1, user2, trade){
+    
+    const user1Offer = trade.data.user1.offered_cards;
+    const user2Offer = trade.data.user2.find(user => user.username === user2).offered_cards;
+    console.log(user1Offer);
+    /* addCards(user2, user1Offer);
+    addCards(user1, user2Offer);
+    
+    removeOfferCards(user1, user1Offer);
+    removeOfferCards(user2, user2Offer); */
+}
+
+async function removeOfferCards(user, cards) {
+    
+}
+
 async function countOccurrences(username, card) {
     const cardProfile = await profileCards(username);  
     const targetCard = cardProfile.find(item => item.card === card.toString());
@@ -459,7 +475,6 @@ async function addOffer(user2, cards, trade_id) {
             return { success: false, message: "Trade non trovato" };
         }
 
-        // Verifica che `user2` sia un array
         if (!Array.isArray(trade.data.user2)) {
             trade.data.user2 = [];
         }
@@ -481,13 +496,12 @@ async function addOffer(user2, cards, trade_id) {
         const tradeObjectId = new ObjectId(trade_id);
         const updateResult = await database.collection("Trades").updateOne(
             { _id: tradeObjectId },
-            { $push: { user2: newUser } } // Aggiunge il nuovo utente all'array `user2`
+            { $push: { user2: newUser } } 
         );
 
         // Aggiorna le carte dell'utente
-        await updateCards(user2, cards);
+        await updateCardsforOffer(user2, cards);
 
-        // Controlla se l'aggiornamento è andato a buon fine
         if (updateResult.modifiedCount > 0) {
             return { success: true, message: "Trade aggiornato con successo" };
         } else {
@@ -521,9 +535,66 @@ async function findTrade(trade_id) {
     } 
 }
 
-async function confirmTrade(){
+async function confirmOffer(trade_id, user1, user2) {
+    let client;
+    try {
+        const connection = await connectToDatabase();
+        const database = connection.db;
+        client = connection.client;
+        trades = database.collection("Trades");
 
+        const trade = await findTrade(trade_id);
+
+        if (!trade.found) {
+            return { success: false, message: "Trade non trovato" };
+        }
+
+        const currentTrade = trade.data;
+        // Trova l'indice dell'user2 e preleva le carte 
+        const userIndex = currentTrade.user2.findIndex(user => user.username === user2);
+        const cardsConfirmed = currentTrade.user2[userIndex].offered_cards;
+        console.log(cardsConfirmed);
+        const offeredCardsConfirmed = currentTrade.user2[userIndex].offered_cards;
+        console.log("Confuso:", currentTrade.user2[userIndex].offered_cards)
+        console.log("afdibsfhbd", currentTrade.user1.offered_cards[0]);
+        console.log("carte offere: ", offeredCardsConfirmed[0]);
+        updateCardsforConfirm(user1, user2, trade)
+
+        // Restituisce le carte agli utenti esclusi
+        const excludedUsers = currentTrade.user2.filter((_, index) => index !== userIndex);
+        for (const excludedUser of excludedUsers) {
+            await addCards(excludedUser.username, excludedUser.offered_cards);
+            cardsExcluded = excludedUser.offered_cards;
+            for(const card of cardsExcluded){
+                
+            }
+        }
+
+        // Mantieni solo l'utente confermato nell'array user2
+        currentTrade.user2 = [currentTrade.user2[userIndex]];
+
+        const tradeObjectId = new ObjectId(trade_id);
+        const updateResult = await trades.updateOne(
+            { _id: tradeObjectId },
+            { $set: { user2: currentTrade.user2, status: "completed" } }
+        );
+
+        if (updateResult.modifiedCount > 0) {
+            return { success: true, message: "Trade completato con successo" };
+        } else {
+            return { success: false, message: "Impossibile completare il trade" };
+        }
+    } catch (error) {
+        console.error("Errore:", error);
+        return { success: false, message: "Errore interno del server." };
+    } finally {
+        if (client) {
+            await client.close();
+        }
+    }
 }
+
+
 
 module.exports = { addUser,
                    updateUser,
@@ -540,5 +611,6 @@ module.exports = { addUser,
                    addNewTrade,
                    countOccurrences,
                    mergeCards,
-                   addOffer
+                   addOffer,
+                   confirmOffer
                 };

@@ -87,8 +87,14 @@
           }
         ],
         "responses": {
+          "200": {
+            "description": "OK"
+          },
           "400": {
             "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -289,8 +295,8 @@
         "tags": [
           "Trade"
         ],
-        "summary": "Crea una offerta per lo scambio",
-        "description": "Verifica che le carte da scambiare non siano già impiegate in altri scambi e poi crea l",
+        "summary": "Propone delle carte per uno scambio",
+        "description": "Viene caricato online uno scambio con le carte proposte dall",
         "parameters": [
           {
             "name": "body",
@@ -306,8 +312,91 @@
           }
         ],
         "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
           "403": {
             "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/trade/offer": {
+      "post": {
+        "tags": [
+          "Trade"
+        ],
+        "summary": "Effettua una proposta a uno degli scambi già esistesti",
+        "description": "Permette di effettuare una proposta per uno degli scambi già esistenti",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "cards": {
+                  "example": "any"
+                },
+                "trade_id": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/trade/accept": {
+      "post": {
+        "tags": [
+          "Trade"
+        ],
+        "summary": "Accetta una proposta di scambio",
+        "description": "Permette di accettare una proposta di scambio da parte di un utente che ha effettuato la proposta",
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/trade/remove": {
+      "delete": {
+        "tags": [
+          "Trade"
+        ],
+        "summary": "Rimuove una proposta di scambio",
+        "description": "Permette di rimuovere una proposta di scambio pubblicata da un utente",
+        "responses": {
+          "default": {
+            "description": ""
           }
         }
       }
@@ -318,7 +407,7 @@
           "Trade"
         ],
         "summary": "Mostra le offerte per gli scambi",
-        "description": "Fornisce tutte le offerte per i possbili scambi",
+        "description": "Fornisce tutte le offerte per i possibili scambi",
         "responses": {
           "default": {
             "description": ""

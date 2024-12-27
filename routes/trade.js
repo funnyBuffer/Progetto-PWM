@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const {addNewTrade, findUser, countOccurrences, addOffer} = require('../func.js');
+const {addNewTrade, findUser, countOccurrences, addOffer, confirmOffer} = require('../func.js');
 
 /* 
 Impostazione del trade
@@ -104,11 +104,44 @@ router.post('/accept', async (req, res) => {
     #swagger.description = 'Permette di accettare una proposta di scambio da parte di un utente che ha effettuato la proposta' 
     #swagger.path = '/trade/accept'
     */
+    const { trade_id, user2 } = req.body;
+    const token = req.cookies.authToken;
+    if (!token) {
+        return res.status(403).send({ error: "Accesso non autorizzato" });
+    }
+
+    jwt.verify(token, process.env.secret_key, async (err, decoded) => {
+        if (err) {
+            return res.status(403).send({ error: "Token non valido" });
+        }
+
+        try {
+            const user1 = await findUser(decoded.username);
+            if (!user1.found) {
+                return res.status(404).send({ error: "Utente non trovato" });
+            }
+
+            const result = await confirmOffer(trade_id, user1.data.username, user2);
+            if (result.success) {
+                return res.status(200).send({ message: "Offerta accettata" });
+            } else {
+                console.log(result.message);
+                return res.status(500).send({ message: "Errore durante l'accettazione dell'offerta, riprovare" });
+            }
+        } catch (error) {
+            console.error("Errore nell'accettazione del trade:", error);
+            return res.status(500).send({ message: "Errore interno del server." });
+        }
+    });
 });
 
 router.delete('remove', async (req, res) => {
-
-
+    /*
+    #swagger.tags = ['Trade']
+    #swagger.summary = 'Rimuove una proposta di scambio'
+    #swagger.description = 'Permette di rimuovere una proposta di scambio pubblicata da un utente' 
+    #swagger.path = '/trade/remove'
+    */
 
 });
 
@@ -116,7 +149,7 @@ router.get('/show', async (req, res) => {
     /*
     #swagger.tags = ['Trade']
     #swagger.summary = 'Mostra le offerte per gli scambi'
-    #swagger.description = 'Fornisce tutte le offerte per i possbili scambi' 
+    #swagger.description = 'Fornisce tutte le offerte per i possibili scambi' 
     #swagger.path = '/trade/show'
     */
 });
