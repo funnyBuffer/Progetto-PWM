@@ -78,6 +78,7 @@ router.post('/offer', async (req, res) => {
             if (!user.found) {
                 return res.status(404).send({ error: "Utente non trovato" });
             }
+            console.log(cards);
             const occurrences = await Promise.all(cards.map(card => countOccurrences(user.data.username, card)));
             if (!occurrences.every(count => count >= 2)) {
                 return res.status(400).send({ message: "Non puoi offrire carte di cui hai meno di 2 copie" });
@@ -121,7 +122,7 @@ router.post('/accept', async (req, res) => {
                 return res.status(404).send({ error: "Utente non trovato" });
             }
 
-            const result = await confirmOffer(trade_id, user1.data.username, user2);
+            const result = await confirmOffer(trade_id, user2);
             if (result.success) {
                 return res.status(200).send({ message: "Offerta accettata" });
             } else {

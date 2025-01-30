@@ -42,8 +42,7 @@ async function addUser(username, name, surname, email, password, fav_hero) {
             password,
             credits: 0,
             cards: [],
-            fav_hero,
-            offer_cards: []
+            fav_hero
         };
 
         const result = await database.collection("Users").insertOne(user);
@@ -62,7 +61,7 @@ async function addUser(username, name, surname, email, password, fav_hero) {
     }
 }
 
-async function updateUser(old_username, username, name, surname, email, password, fav_hero, credits, cards, offer_cards) {
+async function updateUser(old_username, username, name, surname, email, password, fav_hero, credits, cards) {
     try {
         const connection = await connectToDatabase();
         const database = connection.db;
@@ -79,8 +78,7 @@ async function updateUser(old_username, username, name, surname, email, password
             password,
             credits,
             cards,
-            fav_hero,
-            offer_cards
+            fav_hero
         };
 
         const filteredUpdates = Object.fromEntries(
@@ -328,6 +326,12 @@ function openPack(){
     return pack
 }
 
+/////////////////////////////////////////////
+/*                 TRADES                  */
+/////////////////////////////////////////////
+
+// Mi permette di aggiungere le carte dentro la collezione dell'utente
+
 async function mergeCards(username, newCards) {
     // Conta le occorrenze di ciascuna carta
     const cardCount = newCards.reduce((acc, card) => {
@@ -365,6 +369,8 @@ async function mergeCards(username, newCards) {
     } 
 }
 
+// Mi aggiunge un nuovo trade nel database 
+
 async function addNewTrade(user1, cards) {
     let client;
     try {
@@ -388,7 +394,7 @@ async function addNewTrade(user1, cards) {
 
         const result = await database.collection("Trades").insertOne(trade); 
 
-        await updateCardsforOffer(user1, cards);
+        await removeCards(user1, cards);
 
         if (result.acknowledged) {
             return { success: true };
@@ -405,7 +411,9 @@ async function addNewTrade(user1, cards) {
     }
 }
 
-async function updateCardsforOffer(user, cards){
+// Mi permette di decrementare la quantità delle carte dell'utente
+
+async function removeCards(user, cards){
     try{
         const connection = connectToDatabase();
         const database = connection.db;
@@ -425,42 +433,20 @@ async function updateCardsforOffer(user, cards){
                     { $pull: { cards: { card: cardString } } }
                 );
             }
-        }
-        // Aggiungo le carte dentro offer cards
-        for (const card of cards) {
-            const cardString = card.toString();
-            await database.collection("Users").updateOne(
-                { username: user },
-                { $push: { offer_cards: { card: cardString, quantity: 1 } } }
-            );
         } 
     } catch (error){
         return { success: false, message: "Errore interno del server." };  
     }
 } 
 
-async function updateCardsforConfirm(user1, user2, trade){
-    
-    const user1Offer = trade.data.user1.offered_cards;
-    const user2Offer = trade.data.user2.find(user => user.username === user2).offered_cards;
-    console.log(user1Offer);
-    /* addCards(user2, user1Offer);
-    addCards(user1, user2Offer);
-    
-    removeOfferCards(user1, user1Offer);
-    removeOfferCards(user2, user2Offer); */
-}
-
-async function removeOfferCards(user, cards) {
-    
-}
-
+// Conta la quantità di ogni carta per un utente
 async function countOccurrences(username, card) {
-    const cardProfile = await profileCards(username);  
+    const cardProfile = await profileCards(username); 
     const targetCard = cardProfile.find(item => item.card === card.toString());
     return targetCard ? targetCard.quantity : 0;
 }
 
+// Aggiunge un'offerta al trade
 async function addOffer(user2, cards, trade_id) {
     let client;
     try {
@@ -500,7 +486,7 @@ async function addOffer(user2, cards, trade_id) {
         );
 
         // Aggiorna le carte dell'utente
-        await updateCardsforOffer(user2, cards);
+        await removeCards(user2, cards);
 
         if (updateResult.modifiedCount > 0) {
             return { success: true, message: "Trade aggiornato con successo" };
@@ -517,6 +503,7 @@ async function addOffer(user2, cards, trade_id) {
     }
 }
 
+// Cerca un trade nel database
 async function findTrade(trade_id) {
     try{
         const connection = await connectToDatabase();
@@ -535,13 +522,14 @@ async function findTrade(trade_id) {
     } 
 }
 
-async function confirmOffer(trade_id, user1, user2) {
+// Conferma un trade
+async function confirmOffer(trade_id, user2Id) {
     let client;
     try {
         const connection = await connectToDatabase();
         const database = connection.db;
         client = connection.client;
-        trades = database.collection("Trades");
+        const trades = database.collection("Trades");
 
         const trade = await findTrade(trade_id);
 
@@ -550,33 +538,33 @@ async function confirmOffer(trade_id, user1, user2) {
         }
 
         const currentTrade = trade.data;
-        // Trova l'indice dell'user2 e preleva le carte 
-        const userIndex = currentTrade.user2.findIndex(user => user.username === user2);
-        const cardsConfirmed = currentTrade.user2[userIndex].offered_cards;
-        console.log(cardsConfirmed);
-        const offeredCardsConfirmed = currentTrade.user2[userIndex].offered_cards;
-        console.log("Confuso:", currentTrade.user2[userIndex].offered_cards)
-        console.log("afdibsfhbd", currentTrade.user1.offered_cards[0]);
-        console.log("carte offere: ", offeredCardsConfirmed[0]);
-        updateCardsforConfirm(user1, user2, trade)
 
-        // Restituisce le carte agli utenti esclusi
-        const excludedUsers = currentTrade.user2.filter((_, index) => index !== userIndex);
-        for (const excludedUser of excludedUsers) {
-            await addCards(excludedUser.username, excludedUser.offered_cards);
-            cardsExcluded = excludedUser.offered_cards;
-            for(const card of cardsExcluded){
-                
-            }
+        if (!currentTrade.user2.some(user => user.username === user2Id)) {
+            return { success: false, message: "Utente che ha accettato non valido" };
         }
-
-        // Mantieni solo l'utente confermato nell'array user2
-        currentTrade.user2 = [currentTrade.user2[userIndex]];
-
+        console.log("1")
+        // si restituisce le carte agli utenti scartati
+        const excludedUsers = currentTrade.user2.filter(user => user.username !== user2Id);
+        for (const excludedUser of excludedUsers) {
+            await mergeCards(excludedUser.id, excludedUser.offered_cards);
+        }
+        console.log("2")
+        const acceptedUser = currentTrade.user2.find(user => user.username === user2Id);
+        console.log("3")
+        const updatedTrade = {
+            id: trade_id,
+            user1: { id: currentTrade.user1.username, offered_cards: currentTrade.user1.offered_cards },
+            user2: { id: acceptedUser.username, offered_cards: acceptedUser.offered_cards },
+            status: 'completed'
+        };
+        console.log("4")
+        await mergeCards(updatedTrade.user1.username, updatedTrade.user2.offered_cards);
+        await mergeCards(updatedTrade.user2.username, updatedTrade.user1.offered_cards);
+        console.log("5")
         const tradeObjectId = new ObjectId(trade_id);
         const updateResult = await trades.updateOne(
             { _id: tradeObjectId },
-            { $set: { user2: currentTrade.user2, status: "completed" } }
+            { $set: updatedTrade }
         );
 
         if (updateResult.modifiedCount > 0) {

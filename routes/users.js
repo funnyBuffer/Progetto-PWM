@@ -83,7 +83,7 @@ router.post('/update', async (req, res) => {
     #swagger.description = 'Modifica un utente con i dati forniti.'
     #swagger.path = '/users/update'
     */
-    const { old_username, username, name, surname, email, password, fav_hero } = req.body;
+    const { old_username, username, name, surname, password, fav_hero } = req.body;
 
     try {
         const userResult = await findUser(old_username);
@@ -91,11 +91,6 @@ router.post('/update', async (req, res) => {
         if (!userResult.found) {
             return res.status(404).send({ error: "Utente non esistente" });
         }
-
-        // Controllo nuove credenziali
-        //if (email != null && await findEmail(email)) {
-       //     return res.status(409).send({ message: "Email già in uso" });
-       // }
 
         if (username != null && (await findUser(username)).found) {
             return res.status(409).send({ message: `L'username ${username} è già preso` });
@@ -107,7 +102,7 @@ router.post('/update', async (req, res) => {
 
         // Aggiornamento dell'utente
         const updateResult = await updateUser(
-            old_username, username, name, surname, email, password, fav_hero, 0, null, null
+            old_username, username, name, surname, email, password, fav_hero, 0, null
         );
 
         if (updateResult) {
