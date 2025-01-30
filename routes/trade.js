@@ -143,7 +143,34 @@ router.delete('remove', async (req, res) => {
     #swagger.description = 'Permette di rimuovere una proposta di scambio pubblicata da un utente' 
     #swagger.path = '/trade/remove'
     */
+    const { trade_id } = req.body;
+    const token = req.cookies.authToken;
+    if (!token) {
+        return res.status(403).send({ error: "Accesso non autorizzato" });
+    }
 
+    jwt.verify(token, process.env.secret_key, async (err, decoded) => {
+        if (err) {
+            return res.status(403).send({ error: "Token non valido" });
+        }
+
+        try {
+            const user1 = await findUser(decoded.username);
+            if (!user1.found) {
+                return res.status(404).send({ error: "Utente non trovato" });
+            }
+            const result = await removeTrade(trade_id);
+            if (result.success) {
+                return res.status(200).send({ message: "Trade rimosso" });
+            } else {
+                console.log(result.message);
+                return res.status(500).send({ message: "Errore durante la rimozione del trade, riprovare" });
+            }
+        } catch (error) {
+            console.error("Errore nella rimozione del trade:", error);
+            return res.status(500).send({ message: "Errore interno del server." });
+        }
+    });
 });
 
 router.get('/show', async (req, res) => {
@@ -153,6 +180,33 @@ router.get('/show', async (req, res) => {
     #swagger.description = 'Fornisce tutte le offerte per i possibili scambi' 
     #swagger.path = '/trade/show'
     */
+    const token = req.cookies.authToken;
+    if (!token) {
+        return res.status(403).send({ error: "Accesso non autorizzato" });
+    }
+
+    jwt.verify(token, process.env.secret_key, async (err, decoded) => {
+        if (err) {
+            return res.status(403).send({ error: "Token non valido" });
+        }
+
+        try {
+            const user = await findUser(decoded.username);
+            if (!user.found) {
+                return res.status(404).send({ error: "Utente non trovato" });
+            }
+
+            const trades = await showTrades(user);
+            if (trades.success) {
+                return res.status(200).send({ trades: trades.data });
+            } else {
+                console.log(result.message);
+                return res.status(500).send({ message: "Errore durante il caricamento delle offerte, riprovare" });
+            }
+        } catch (error) {
+            return res.status(500).send({ message: "Errore interno del server." });
+        }
+    });
 });
 
 module.exports = router;
