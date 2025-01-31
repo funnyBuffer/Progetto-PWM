@@ -28,13 +28,13 @@ router.post('/login', async (req, res) => {
     }
 });
 
-router.get('/auth', (req, res) => {
+router.get('/valid', (req, res) => {
 
     /* 
     #swagger.tags = ['Auth']
     #swagger.summary = 'Verifica autenticazione'
     #swagger.description = 'Verifica se l'utente è autenticato.' 
-    #swagger.path = '/auth/auth'
+    #swagger.path = '/auth/valid'
     */
 
     const token = req.cookies.authToken;
@@ -44,10 +44,34 @@ router.get('/auth', (req, res) => {
     }
     try {
         const decoded = jwt.verify(token, process.env.secret_key);
-        return res.status(200).send({ message: 'Accesso consentito', user: decoded });
+        // Controlla se il token è scaduto
+        const currentTime = Date.now() / 1000; 
+        if (decoded.exp < currentTime) {
+            return res.status(401).send({ error: 'Token scaduto', valid: false });
+        }
+        return res.status(200).send({ valid: true, user: decoded });
     } catch (err) {
-        return res.status(401).send({ error: 'Token non valido' });
+        return res.status(401).send({ error: 'Token non valido', valid: false });
     }
 });
+
+router.post('/logout', async (req, res) => {
+    /*
+    #swagger.tags = ['Auth']
+    #swagger.summary = 'Effettua il logout'
+    #swagger.description = 'Rimuove il token di autenticazione dal cookie e disconnette l\'utente.'
+    #swagger.path = '/auth/logout'
+    */
+
+    res.cookie('authToken', '', {
+        httpOnly: true,
+        secure: true, // Usa `true` se utilizzi HTTPS
+        sameSite: 'Strict',
+        expires: new Date(0), // Imposta la data di scadenza nel passato
+    });
+
+    return res.status(200).send({ message: 'Logout effettuato con successo' });
+});
+
 
 module.exports = router;

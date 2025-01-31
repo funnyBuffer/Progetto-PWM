@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const {addNewTrade, findUser, countOccurrences, addOffer, confirmOffer} = require('../func.js');
+const {addNewTrade, findUser, countOccurrences, addOffer, confirmOffer, removeTrade, showTrades} = require('../func.js');
 
 /* 
 Impostazione del trade

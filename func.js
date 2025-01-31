@@ -586,21 +586,18 @@ async function confirmOffer(trade_id, user2Id) {
         }
 
         const acceptedUser = currentTrade.user2.find(user => user.username === user2Id);
+        user1_offeredCards = currentTrade.user1.offered_cards.flat();
         
         const updatedTrade = {
             id: trade_id,
-            user1: { id: currentTrade.user1.username, offered_cards: acceptedUser.offered_cards },
-            user2: { id: acceptedUser.username, offered_cards: currentTrade.user1.offered_cards },
+            user1: { username: currentTrade.user1.username, offered_cards: acceptedUser.offered_cards },
+            user2: { username: acceptedUser.username, offered_cards: user1_offeredCards },
             status: 'completed'
         };
-        user2_offeredCards = updatedTrade.user2.offered_cards.flat();
-        console.log(user2_offeredCards)
-        console.log(updatedTrade.user2.offered_cards)
-        console.log(updatedTrade.user1.offered_cards)
-        console.log(updatedTrade.user1.id)
-        console.log(updatedTrade.user2.id)
-        await mergeCards(updatedTrade.user1.id, updatedTrade.user1.offered_cards);
-        await mergeCards(updatedTrade.user2.id, user2_offeredCards);
+        
+
+        await mergeCards(updatedTrade.user1.username, updatedTrade.user1.offered_cards);
+        await mergeCards(updatedTrade.user2.username, updatedTrade.user2.offered_cards);
 
         const tradeObjectId = new ObjectId(trade_id);
         const updateResult = await trades.updateOne(
@@ -615,6 +612,66 @@ async function confirmOffer(trade_id, user2Id) {
         }
     } catch (error) {
         console.error("Errore:", error);
+        return { success: false, message: "Errore interno del server." };
+    } finally {
+        if (client) {
+            await client.close();
+        }
+    }
+}
+
+async function removeTrade(trade_id) {
+    let client;
+    try {
+        const connection = await connectToDatabase();
+        const database = connection.db;
+        client = connection.client;
+        
+        const trade = await findTrade(trade_id);
+
+        if (!trade.found) {
+            return { success: false, message: "Trade non trovato" };
+        }
+
+        const currentTrade = trade.data;
+
+        await mergeCards(currentTrade.user1.username, currentTrade.user1.offered_cards);        
+        const allUsers = currentTrade.user2; 
+        for (const user of allUsers) {
+            await mergeCards(user.username, user.offered_cards);
+        }
+
+        const updatedTrade = {
+            id: trade_id,
+            status: 'cancelled'
+        };
+
+        if (deleteResult.deletedCount === 1) {
+            return { success: true };
+        } else {
+            return { success: false };
+        }
+    } catch (error) {
+        console.error("Errore durante la cancellazione del trade:", error);
+        return { success: false, message: "Errore interno del server." };
+    } finally {
+        if (client) {
+            await client.close();
+        }
+    }
+}   
+
+async function showTrades(username) {  
+    let client;
+    try {
+        const connection = await connectToDatabase();
+        const database = connection.db;
+        client = connection.client;
+        
+        const trades = await database.collection('trades').find({ "user1.username": username }).toArray();
+        return { success: true, trades: trades };
+    
+    } catch (error) {
         return { success: false, message: "Errore interno del server." };
     } finally {
         if (client) {
@@ -641,5 +698,7 @@ module.exports = { addUser,
                    countOccurrences,
                    mergeCards,
                    addOffer,
-                   confirmOffer
+                   confirmOffer,
+                   removeTrade,
+                   showTrades
                 };

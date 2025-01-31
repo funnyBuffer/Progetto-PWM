@@ -57,9 +57,23 @@ app.get('/shop', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'pages', 'shop.html'));
 });
 
-//// Pagina shop 
-app.get('/stand', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'pages', 'stand.html'));
+//// Pagine per i trade
+// pagina per le offerte
+app.get('/offers', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'pages', 'trades', 'offers.html'));
+});
+// pagina per mettere un nuovo trade
+app.get('/post', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'pages', 'trades', 'post.html'));
+});
+//pagina per vedere le proposte di altri utenti
+app.get('/proposals', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'pages', 'trades', 'proposals.html'));
+});
+
+//Collezione di carte per ogni utente
+app.get('/collection', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'pages', 'collection.html'));
 });
 
 //// Aggiornamento ogni 12 ore del file cardsID
