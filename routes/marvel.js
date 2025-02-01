@@ -14,30 +14,20 @@ router.post('/marvellous', (req, res) => {
     const { url, query } = req.body;
 
     getFromMarvel(url, query)
-        .then((result) => {
-            res.json({
-                success: true,
-                data: result,
-            });
-        })
-        .catch((error) => {
-            console.error('Errore nella richiesta Marvel:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Errore durante la richiesta alle API Marvel',
-                error: error.message || 'Errore sconosciuto',
-            });
-        });
+        .then(result => res.json({ success: true, data: result }))
+        .catch(error => res.status(500).json({ success: false, message: error.message }));
 });
 
-router.get('/unpack', async (req, res) => {
+router.post('/unpack', async (req, res) => {
 
     /*
     #swagger.tags = ['Marvel']
-    #swagger.summary = 'Apre un pacchetto di 5 carte'
-    #swagger.description = 'Fornisce a un utente autenticato 5 carte casuali da aggiungere alla collezione' 
+    #swagger.summary = 'Apre un pacchetto'
+    #swagger.description = 'Fornisce a un utente autenticato delle carte casuali da aggiungere alla collezione' 
     #swagger.path = '/marvel/unpack'
     */
+
+    const { quantity } = req.body;
 
     const token = req.cookies.authToken;
     if (!token) {
@@ -51,7 +41,7 @@ router.get('/unpack', async (req, res) => {
 
         try {
             const user = await findUser(decoded.username);
-            const cards = openPack(); 
+            const cards = openPack(quantity); 
             await mergeCards(user.data.username, cards);
 
             return res.status(200).send({ cards: cards });

@@ -38,7 +38,7 @@ app.get('/login', (req, res) => {
 });
 
 //// Pagina registrer
-app.get('/register', (req, res) => {
+app.get('/signup', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'pages', 'register.html'));
 });
 
@@ -74,6 +74,16 @@ app.get('/proposals', (req, res) => {
 //Collezione di carte per ogni utente
 app.get('/collection', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'pages', 'collection.html'));
+});
+
+//Collezione di carte per ogni utente
+app.get('/test', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'pages', 'test.html'));
+});
+
+//Collezione di carte per ogni utente
+app.get('/error', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'pages', 'error.html'));
 });
 
 //// Aggiornamento ogni 12 ore del file cardsID

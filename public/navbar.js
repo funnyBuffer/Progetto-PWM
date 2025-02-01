@@ -40,6 +40,7 @@ function loadNavbar() {
                     <li class="nav-item dropdown d-none" id="user-menu">
                         <a class="nav-link dropdown-toggle" href="#" id="userMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <img id="userIcon" src="icons/user.png" alt="User Icon" width="30">
+                            <p id="username"></p>
                         </a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" id="profile-link" href="/profile"><img src="icons/user.png" alt="Profile" width="16"> Profile</a></li>
@@ -64,8 +65,10 @@ function loadNavbar() {
 
 async function checkAuthToken() {
     const token = localStorage.getItem("token");
-
     if (!token) {
+        console.log("Nessun token trovato, mostrando Sign In");
+        document.getElementById("sign-in-button").classList.remove("d-none");
+        document.getElementById("user-menu").classList.add("d-none");
         return;
     }
 
@@ -83,10 +86,12 @@ async function checkAuthToken() {
         if (response.status === 200 && data.valid) {
             // Se l'utente è loggato
             console.log("è loggato");
-            document.getElementById("auth-link").classList.add("d-none");  // Nascondi "Sign in"
+            document.getElementById("sign-in-button").classList.add("d-none");  // Nascondi "Sign in"
             document.getElementById("logout-link").classList.remove("d-none");  // Mostra "Logout"
             document.getElementById("profile-link").classList.remove("d-none");  // Mostra "Profile"
+            document.getElementById("user-menu").classList.remove("d-none");  // Mostra User menu
             document.getElementById("userMenu").href = "/profile";  // Imposta il link dell'utente a /profile
+            document.getElementById("username").innerText = data.user.username;  // Imposta il nome utente
     
             // Gestione clic sulla voce del menu per il logout
             document.getElementById("logout-link").addEventListener("click", function() {
@@ -120,56 +125,12 @@ async function checkAuthToken() {
 }
 
 function notLogged() {
-    document.getElementById("auth-link").classList.remove("d-none");
+    document.getElementById("sign-in-button").classList.remove("d-none");
     document.getElementById("logout-link").classList.add("d-none");
     document.getElementById("profile-link").classList.add("d-none");
-    
-    localStorage.removeItem("token");
-    document.getElementById("sign-in-button").classList.remove("d-none");
     document.getElementById("user-menu").classList.add("d-none");
+    document.getElementById("user-menu").classList.add("d-none");  
+    localStorage.removeItem("token");
 }
 
-async function checkAuthToken() {
-
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-        console.log("Nessun token trovato, mostrando Sign In");
-        document.getElementById("sign-in-button").classList.remove("d-none");
-        document.getElementById("user-menu").classList.add("d-none");
-        return;
-    }
-
-    try {
-        const response = await fetch("/auth/valid", {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-        });
-
-        const data = await response.json();
-        console.log("Dati ricevuti:", data);
-
-        if (response.status === 200 && data.valid) {
-            console.log("Utente autenticato, mostrando menu profilo");
-
-            document.getElementById("sign-in-button").classList.add("d-none");  // Nasconde Sign In
-            document.getElementById("user-menu").classList.remove("d-none");  // Mostra icona profilo
-
-            document.getElementById("logout-link").addEventListener("click", function () {
-                localStorage.removeItem("token");
-                window.location.reload();
-            });
-
-        } else {
-            console.warn("Token scaduto o non valido, mostrando Sign In");
-            localStorage.removeItem("token");
-            document.getElementById("sign-in-button").classList.remove("d-none");
-            document.getElementById("user-menu").classList.add("d-none");
-        }
-    } catch (err) {
-        console.error("Errore nella verifica del token", err);
-        
-    }
-}
 

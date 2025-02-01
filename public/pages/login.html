@@ -25,7 +25,7 @@
                 <!--Username-->
                 <div class="mb-3 form-group">
                     <label for="username" class="form-label">Username</label>
-                    <input type="text" class="form-control" id="username" placeholder="Inserisci il tuo username" required>
+                    <input type="text" class="form-control" id="login-username" placeholder="Inserisci il tuo username" required>
                 </div>
                 <!--Password-->
                 <div class="mb-3 form-group">
@@ -51,10 +51,8 @@
         document.getElementById("loginButton").addEventListener("click", async (event) => {
             event.preventDefault(); 
 
-            const username = document.getElementById("username").value;
+            const username = document.getElementById("login-username").value;
             const password = document.getElementById("password").value;
-            
-            const apiUrl = "http://localhost:3000/auth/login"; 
 
             const payload = {
                 username: username,
@@ -62,7 +60,7 @@
             };
 
             try {
-                const response = await fetch(apiUrl, {
+                const response = await fetch("../auth/login", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"

@@ -48,12 +48,21 @@ body {
 
 .btn {
     padding: .45rem 1.5rem .35rem;
-  }
+}
+
+.container {
+    margin-top: 80px;
+}
   
 /*--------NAVBAR-----*/
 
 .navbar-custom {
-    background-color: #161616; 
+    background-color: #161616;
+    position: fixed; 
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
 }
 
 

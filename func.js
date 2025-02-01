@@ -315,11 +315,11 @@ function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function openPack(){
+function openPack(quantity){
     AllCards = getCharacterIds();
     const pack = [];
     let i = 0;
-    for(;i < 500; i++){
+    for(;i < quantity; i++){
         pack[i] = AllCards[getRandomInt(0, AllCards.length)];
     }
    // return [633, 633, 800, 800]

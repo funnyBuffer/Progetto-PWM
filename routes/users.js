@@ -92,8 +92,10 @@ router.post('/update', async (req, res) => {
             return res.status(404).send({ error: "Utente non esistente" });
         }
 
-        if (username != null && (await findUser(username)).found) {
-            return res.status(409).send({ message: `L'username ${username} è già preso` });
+        if (username != null && username !== old_username) {
+            if(await findUser(username).found){
+                return res.status(409).send({ message: `L'username ${username} è già preso` });
+            }
         }
 
         if (password != null && userResult.data.password === password) {
@@ -130,6 +132,34 @@ router.get('/find', async (req, res) => {
             message: "Utente trovato",
             username: userResult.data.username,
             userId: userResult.data._id
+        })
+    } else{
+        res.status(404).send({ message: "Utente non trovato" });
+    }
+})
+
+router.post('/info', async (req, res) => {
+    /*
+    #swagger.tags = ['Users']
+    #swagger.summary = 'Trova un utente'
+    #swagger.description = 'Trova un utente attraverso l'username.'
+    #swagger.path = '/users/find'
+    */
+    const{ username } = req.body;
+    const userResult = await findUser(username);
+    
+    if(userResult.found){
+        res.status(200).send({
+            message: "Utente trovato",
+            username: userResult.data.username,
+            userId: userResult.data._id,
+            userEmail: userResult.data.email,
+            userFavHero: userResult.data.fav_hero,
+            userName: userResult.data.name,
+            userSurname: userResult.data.surname,
+            userPassword: userResult.data.password,
+            userCardsCount: userResult.data.cards.length,
+            userCards: userResult.data.cards
         })
     } else{
         res.status(404).send({ message: "Utente non trovato" });

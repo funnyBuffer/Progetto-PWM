@@ -20,7 +20,7 @@ router.post('/login', async (req, res) => {
             httpOnly: true, // Il cookie è accessibile solo dal server
             secure: true, // Usa `true` se utilizzi HTTPS
             sameSite: 'Strict', // Protegge contro CSRF
-            maxAge: 60 * 60 * 1000, // Durata di 1 ora
+            maxAge: 60 * 180 * 1000, // Durata di 3 ore
         });
         return res.status(loginResult.status).send({ message: loginResult.message });
     } else {

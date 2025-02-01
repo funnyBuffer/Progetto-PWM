@@ -1,44 +1,164 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
-    <link rel="icon" href="../img/logo.png" type="image/png">
-    <!-- Link al CSS di Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Stili personalizzati -->
-    <link rel="stylesheet" href="../css/css_default.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Profile</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <style>
+    body {
+      padding-top: 80px; 
+    }
+  </style>
+  <link rel="stylesheet" href="../css/css_default.css">
 </head>
-
 <body>
-<div class="col container-fluid ">
+
+  <!-- Contenuto Profilo -->
+  <div class="container">
+    <h1 class="mb-4" id="user"></h1>
     <div class="row">
-        <div class="background-container">
-
+      <!-- Statistiche Utente -->
+      <div class="col-md-4">
+        <div class="card mb-4">
+          <div class="card-header">
+            Statistiche
+          </div>
+          <div class="card-body">
+            <p class="card-text">Carte collezionate: <strong id="cards"></strong></p>
+            <p class="card-text">Supereroe preferito: <strong id="favHero"></strong></p>
+          </div>
         </div>
-        <div class="container login-container mt-5">
-            
-            <h2 class="text-center mb-4">Benvenuto </h2>
-            
-            <div id="risultati">
-            </div>
-
+      </div>
+      <!-- Modifica Dati Personali -->
+      <div class="col-md-8">
+        <div class="card">
+          <div class="card-header">
+            Modifica Dati Personali
+          </div>
+          <div class="card-body">
+            <form id="profileForm">
+              <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" value="" required>
+              </div>
+              <div class="mb-3">
+                <label for="text" class="form-label">Name</label>
+                <input type="text" class="form-control" id="name" value="" required>
+              </div>
+              <div class="mb-3">
+                <label for="text" class="form-label">Surname</label>
+                <input type="text" class="form-control" id="surname" value="" required>
+              </div>
+              <div class="mb-3">
+                <label for="favoriteHero" class="form-label">Supereroe Preferito</label>
+                <select class="form-select" id="favoriteHero" required>
+                  <option selected>Spider-Man</option>
+                  <option>Iron Man</option>
+                  <option>Captain America</option>
+                  <option>Thor</option>
+                  <option>Hulk</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="password" class="form-label">Old password</label>
+                <input type="password" class="form-control" id="oldPassword" placeholder="Old Password" required>
+              </div>
+              <div class="mb-3">
+                <label for="password" class="form-label">New Password</label>
+                <input type="password" class="form-control" id="newPassword"  placeholder="New Password" required>
+              </div>
+              <button type="submit" class="btn btn-danger">Salva modifiche</button>
+            </form>
+          </div>
         </div>
+      </div>
     </div>
-    <!---->
-</div>
-    <!-- Script di Bootstrap -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Funzione per testare la chiamata all'API
-    </script>
-    
-    <script src="/navbar.js"></script>
-    <script> loadNavbar(); </script>
+  </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+  <script>
+    (async function() {
+      const token = localStorage.getItem("token");
+  
+      if (!token) {
+        window.location.href = "/home.html";
+        return;
+      }
+  
+      try {
+        const validation = await fetch("/auth/valid", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          credentials: "include"
+        });
+  
+        const cookie = await validation.json();
+
+        const payload = {
+                username: cookie.user.username,
+            };
+
+        const response = await fetch("/users/info", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload),
+          credentials: "include"
+        });
+       
+        const info = await response.json();
+
+        document.getElementById('user').textContent = info.username;
+        document.getElementById('email').value = info.userEmail;
+        document.getElementById('name').value = info.userName;
+        document.getElementById('surname').value = info.userSurname;
+        document.getElementById('cards').textContent = info.userCardsCount;
+        document.getElementById('favHero').textContent = info.userFavHero;
+  
+        document.getElementById('profileForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+  
+            // Raccogli i dati dal form
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const favoriteHero = document.getElementById('favoriteHero').value;
+            const oldPassword = document.getElementById('oldPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const name = document.getElementById('name').value;
+            const surname = document.getElementById('surname').value;
+
+            const oldHashedPassword = crypto.createHash('sha256').update(password).digest('hex');
+
+            if( oldHashedPassword != info.password){
+                alert('Old password is wrong, try again'); 
+                return; 
+            } else if (oldPassword == null){
+                console.log('Dati aggiornati:', { username, username, name, surname, email, password, favoriteHero });
+      
+                // Invia i dati al server
+                fetch('/users/update', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({ username, email, favoriteHero })
+                })
+            }
+
+        });
+      } catch (error) {
+        console.error("Errore durante la validazione del token:", error);
+        //window.location.href = "/error.html";
+      }
+    })();
+  </script>
+  
+  <script src="/navbar.js"></script>
+    <script> loadNavbar(); </script>    
 </body>
-
 </html>
-
