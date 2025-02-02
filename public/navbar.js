@@ -1,6 +1,6 @@
-window.onload = function () {
-    loadNavbar();
-};
+// window.onload = function () {
+//     loadNavbar();
+// };
 
 
 function loadNavbar() {
@@ -64,13 +64,6 @@ function loadNavbar() {
 
 
 async function checkAuthToken() {
-    const token = localStorage.getItem("token");
-    if (!token) {
-        console.log("Nessun token trovato, mostrando Sign In");
-        document.getElementById("sign-in-button").classList.remove("d-none");
-        document.getElementById("user-menu").classList.add("d-none");
-        return;
-    }
 
     try {
         const response = await fetch("/auth/valid", {
@@ -94,8 +87,14 @@ async function checkAuthToken() {
             document.getElementById("username").innerText = data.user.username;  // Imposta il nome utente
     
             // Gestione clic sulla voce del menu per il logout
-            document.getElementById("logout-link").addEventListener("click", function() {
-                localStorage.removeItem("token");  
+            document.getElementById("logout-link").addEventListener("click", async function() {
+                await fetch("/auth/logout", {
+                    method: "DELETE",  
+                    headers: {
+                        "Content-Type": "application/json"  
+                    },
+                    credentials: "include"  
+                });  
                 window.location.reload();  
             });
 

@@ -11,16 +11,15 @@
         <link rel="stylesheet" href="../css/css_default.css">
     </head>
     <body>
-        <div class="container">
-            <div class="row row-cols-md-4 row-cols-sm-2 row-cols-2 g-4">
+        <div class="container" style="padding-top: 80px;">
+            <div class="row row-cols-xl-6 row-cols-lg-5 row-cols-md-3 row-cols-sm-2 row-cols-2 g-4 mt-5">
                 <div id="collection" class="col d-none">
-                <div class="card h-100">
-                    <img id="image" src="" class="card-img-top" alt="...">
-                    <div class="card-body">
-                        <h5 id="nameCard" class="card-title"></h5>
-                        <p id="overview" class="card-text"></p>
+                    <div class="card h-100">
+                        <img id="image" src="" class="card-img-top" alt="...">
+                        <div class="card-body">
+                            <h5 id="nameCard" class="card-title" style="color: black;"></h5>
+                        </div>
                     </div>
-                </div>
                 </div>
             </div>
         </div>
@@ -29,7 +28,7 @@
 
         (async function() {
             try {
-                const cardTemplate = document.getElementById('collection');
+                const cardTemplate = document.getElementsByClassName('col')[0];
                 if (!cardTemplate) {
                     throw new Error("Elemento 'collection' non trovato nel DOM.");
                 }
@@ -96,14 +95,17 @@
                             if (information.data.data.results.length > 0) {
 
                                 nameCard.innerHTML = information.data.data.results[0].name;
-                                overview.innerHTML = information.data.data.results[0].description || "Description not available";
+                                //overview.innerHTML = information.data.data.results[0].description || "Description not available";
 
                                 let imageUrl = `${information.data.data.results[0].thumbnail.path}.${information.data.data.results[0].thumbnail.extension}` || "icons/imageNotAvailable.jpg";
+                                if(imageUrl.includes("image_not_available")) {
+                                    imageUrl = "icons/imageNotFound.png";
+                                }
 
                                 image.src = imageUrl;
-                                
+                                image.classList.add('square-img');
                                 clone.classList.remove('d-none');
-                                document.querySelector('.row').appendChild(clone);
+                                cardTemplate.before(clone);
                             } else {
                                 console.warn(`Nessun personaggio trovato per ID: ${cardID}`);
                             }

@@ -1,15 +1,11 @@
 
 body {
-    margin: 0;
     padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     height: 100vh;
     font-family: Arial, sans-serif;
     background: rgb(179, 0, 0);
     color: #fff;
-}
+} 
 
 .background-container {
     position: fixed;
@@ -50,10 +46,23 @@ body {
     padding: .45rem 1.5rem .35rem;
 }
 
-.container {
-    margin-top: 80px;
+ 
+/*--------CARDS--------*/
+
+.card {
+    max-height: 400px; 
+    overflow: auto; 
 }
-  
+.card:hover {
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 1);
+}
+
+.square-img {
+    object-fit: cover;
+    width: 100%; 
+    height: 270px;
+}
+
 /*--------NAVBAR-----*/
 
 .navbar-custom {

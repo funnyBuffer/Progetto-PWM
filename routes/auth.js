@@ -55,7 +55,7 @@ router.get('/valid', (req, res) => {
     }
 });
 
-router.post('/logout', async (req, res) => {
+router.delete('/logout', async (req, res) => {
     /*
     #swagger.tags = ['Auth']
     #swagger.summary = 'Effettua il logout'

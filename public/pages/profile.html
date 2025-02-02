@@ -12,80 +12,72 @@
   </style>
   <link rel="stylesheet" href="../css/css_default.css">
 </head>
-<body>
-
-  <!-- Contenuto Profilo -->
-  <div class="container">
-    <h1 class="mb-4" id="user"></h1>
-    <div class="row">
-      <!-- Statistiche Utente -->
-      <div class="col-md-4">
-        <div class="card mb-4">
-          <div class="card-header">
-            Statistiche
-          </div>
-          <div class="card-body">
-            <p class="card-text">Carte collezionate: <strong id="cards"></strong></p>
-            <p class="card-text">Supereroe preferito: <strong id="favHero"></strong></p>
+<body class="d-flex justify-content-center align-items-center">
+    <!-- Contenuto Profilo -->
+    <div class="container">
+      <h1 class="mb-4" id="user"></h1>
+      <div class="row">
+        <!-- Statistiche Utente -->
+        <div class="col-md-4">
+          <div class="card mb-4">
+            <div class="card-header">
+              Statistiche
+            </div>
+            <div class="card-body">
+              <p class="card-text">Carte collezionate: <strong id="cards"></strong></p>
+              <p class="card-text">Supereroe preferito: <strong id="favHero"></strong></p>
+            </div>
           </div>
         </div>
-      </div>
-      <!-- Modifica Dati Personali -->
-      <div class="col-md-8">
-        <div class="card">
-          <div class="card-header">
-            Modifica Dati Personali
-          </div>
-          <div class="card-body">
-            <form id="profileForm">
-              <div class="mb-3">
-                <label for="email" class="form-label">Email</label>
-                <input type="email" class="form-control" id="email" value="" required>
-              </div>
-              <div class="mb-3">
-                <label for="text" class="form-label">Name</label>
-                <input type="text" class="form-control" id="name" value="" required>
-              </div>
-              <div class="mb-3">
-                <label for="text" class="form-label">Surname</label>
-                <input type="text" class="form-control" id="surname" value="" required>
-              </div>
-              <div class="mb-3">
-                <label for="favoriteHero" class="form-label">Supereroe Preferito</label>
-                <select class="form-select" id="favoriteHero" required>
-                  <option selected>Spider-Man</option>
-                  <option>Iron Man</option>
-                  <option>Captain America</option>
-                  <option>Thor</option>
-                  <option>Hulk</option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label for="password" class="form-label">Old password</label>
-                <input type="password" class="form-control" id="oldPassword" placeholder="Old Password" required>
-              </div>
-              <div class="mb-3">
-                <label for="password" class="form-label">New Password</label>
-                <input type="password" class="form-control" id="newPassword"  placeholder="New Password" required>
-              </div>
-              <button type="submit" class="btn btn-danger">Salva modifiche</button>
-            </form>
+        <!-- Modifica Dati Personali -->
+        <div class="col-md-8">
+          <div class="card">
+            <div class="card-header">
+              Modifica Dati Personali
+            </div>
+            <div class="card-body">
+              <form id="profileForm">
+                <div class="mb-3">
+                  <label for="email" class="form-label">Email</label>
+                  <input type="email" class="form-control" id="email" value="" required>
+                </div>
+                <div class="mb-3">
+                  <label for="text" class="form-label">Name</label>
+                  <input type="text" class="form-control" id="name" value="" required>
+                </div>
+                <div class="mb-3">
+                  <label for="text" class="form-label">Surname</label>
+                  <input type="text" class="form-control" id="surname" value="" required>
+                </div>
+                <div class="mb-3">
+                  <label for="favoriteHero" class="form-label">Supereroe Preferito</label>
+                  <select class="form-select" id="favoriteHero" required>
+                    <option selected>Spider-Man</option>
+                    <option>Iron Man</option>
+                    <option>Captain America</option>
+                    <option>Thor</option>
+                    <option>Hulk</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label for="password" class="form-label">Old password</label>
+                  <input type="password" class="form-control" id="oldPassword" placeholder="Old Password" required>
+                </div>
+                <div class="mb-3">
+                  <label for="password" class="form-label">New Password</label>
+                  <input type="password" class="form-control" id="newPassword"  placeholder="New Password" required>
+                </div>
+                <button type="submit" class="btn btn-danger">Salva modifiche</button>
+              </form>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
   <script>
     (async function() {
-      const token = localStorage.getItem("token");
-  
-      if (!token) {
-        window.location.href = "/home.html";
-        return;
-      }
   
       try {
         const validation = await fetch("/auth/valid", {
@@ -97,6 +89,11 @@
         });
   
         const cookie = await validation.json();
+
+        if(!cookie.valid){
+           window.location.href = "/login";
+           return;
+        }
 
         const payload = {
                 username: cookie.user.username,
