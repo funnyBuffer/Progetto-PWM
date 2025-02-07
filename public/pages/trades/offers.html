@@ -4,17 +4,88 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Home</title>
-        <link rel="icon" href="../img/logo.png" type="image/png">
+        <link rel="icon" href="../../icons/logo.png" type="image/png">
         <!-- Link al CSS di Bootstrap -->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
         <!-- Stili personalizzati -->
         <link rel="stylesheet" href="../css/css_default.css">
     </head>
+    <!-- Questa pagina mostra le offerte disponibili per l'utente -->
     <body>
-        <div class="container">
-            <h1>Stand</h1>
-            <p>Qui ci saranno gli scambi disponibili</p>
+        <div class="container pt-5" style="padding-top: 80px;">
+            <div class="row" id="offersContainer">
+                <!-- Le offerte verranno inserite dinamicamente qui -->
+            </div>
         </div>
+    
+        <!-- Modal per i dettagli -->
+        <div class="modal fade" id="offerModal" tabindex="-1" aria-labelledby="offerModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="offerModalLabel">Dettagli Offerta</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>Offerto da:</strong> <span id="modalUser"></span></p>
+                        <p><strong>Carte offerte:</strong> <span id="modalOfferedCards"></span></p>
+                        <p><strong>Carte richieste:</strong> <span id="modalRequestedCards"></span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <script>
+        async function loadOffers() {
+            try {
+                const response = await fetch("/trade/show", {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include"
+                });
+
+                if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+
+                const data = await response.json();
+                console.log("Risposta server:", data);  // DEBUG: Vedi la struttura dei dati
+
+                if (!Array.isArray(data.trades)) {
+                    throw new Error("La risposta del server non contiene un array di offerte");
+                }
+
+                const offers = data.trades;  // Estraggo l'array corretto
+                const container = document.getElementById("offersContainer");
+                container.innerHTML = "";
+
+                offers.forEach(offer => {
+                    const card = document.createElement("div");
+                    card.classList.add("col-md-4");
+                    card.innerHTML = `
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">Offert by ${offer.user1.username}</h5>
+                                <button class="btn btn-primary" onclick="showDetails('${offer.user1.username}', '${offer.offeredCards}', '${offer.requestedCards}')">More Info</button>
+                                <button class="btn btn-success">Accetta</button>
+                                <button class="btn btn-danger">Rifiuta</button>
+                            </div>
+                        </div>`;
+                    container.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error("Errore durante il caricamento delle offerte:", error.message);
+            }
+        }
+
+        function showDetails(user, offeredCards, requestedCards) {
+            document.getElementById("modalUser").textContent = user;
+            document.getElementById("modalOfferedCards").textContent = offeredCards;
+            document.getElementById("modalRequestedCards").textContent = requestedCards;
+            new bootstrap.Modal(document.getElementById("offerModal")).show();
+        }
+
+        loadOffers();
+
+    </script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
         <script src="/navbar.js"></script>
         <script> loadNavbar(); </script>    
