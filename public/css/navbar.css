@@ -1,0 +1,62 @@
+/*--------NAVBAR-----*/
+
+.navbar-custom {
+    background-color: #161616;
+    position: fixed; 
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
+
+.navbar-nav .nav-link:not(.dropdown-toggle) {
+    position: relative;
+    font-size: 18px;
+    padding-bottom: 5px;
+}
+
+.navbar-nav .nav-link:not(.dropdown-toggle)::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 0;
+    height: 2px;
+    background-color: red;
+    transition: width 0.3s ease-in-out, left 0.3s ease-in-out;
+}
+
+.navbar-nav .nav-link:not(.dropdown-toggle):hover::after {
+    width: 100%;
+    left: 0;
+}
+
+
+.navbar-nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#userMenu img {
+    width: 40px; 
+    margin-right: 10px; 
+}
+
+
+#userMenu {
+    display: flex;
+    align-items: center;
+    gap: 8px; 
+}
+
+
+.dropdown-menu {
+    min-width: 200px; 
+}
+
+.navbar-brand {
+    text-align: center;
+    flex: 1;
+}

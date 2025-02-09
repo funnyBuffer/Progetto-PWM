@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <link rel="icon" href="../icons/logo.png" type="image/png">
+    <!-- Link al CSS di Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Stili personalizzati -->
+    <link rel="stylesheet" href="../css/css_register.css">
+</head>
+
+<body>
+    <div class="background-container"></div>
+    <div class="container justify-content-center align-items-center">
+        <div class="register-container">   
+        <h2 class="text-center mb-4" style="color:black">Signup</h2>
+            <form method="post">
+                <!--username-->
+                <div class="mb-3 form-group">
+                    <label for="text" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="username" placeholder="Inserisci il tuo username" required>
+                </div>
+                <!--name-->
+                <div class="mb-3 form-group">
+                    <label for="text" class="form-label">Name</label>
+                    <input type="text" class="form-control" id="name" placeholder="Inserisci il tuo nome" required>
+                </div>
+                <!--surname-->
+                <div class="mb-3 form-group">
+                    <label for="text" class="form-label">Surname</label>
+                    <input type="text" class="form-control" id="surname" placeholder="Inserisci il tuo cognome" required>
+                </div>
+                <!--email-->
+                <div class="mb-3 form-group">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" placeholder="Inserisci la tua email" required>
+                </div>
+                <!--password-->
+                <div class="mb-3 form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="password" placeholder="Inserisci la tua password"
+                        required>
+                </div>
+                <!--conferma password-->
+                <div class="mb-3 form-group">
+                    <label for="password" class="form-label">Confirm password</label>
+                    <input type="password" class="form-control" id="conf_password" placeholder="Conferma la tua password"
+                        required>
+                </div>
+
+                <!--supereroe preferito-->
+                <div class="mb-3">
+                    <div class="dropdown">
+                        <label class="form-label">Favorite Superhero</label>
+                        <input type="text" onkeyup="searchHero();" onkeydown="searchHero()" class="form-control" id="Superhero" data-bs-toggle="dropdown" aria-expanded="false" placeholder="Select your favorite superhero" required>
+                        <ul class="dropdown-menu w-100" id="superhero-form">
+                        <li><a class="dropdown-item d-none"></a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- Messaggio d'errore -->
+                <div id="ErrMessage" class="text-center mb-4"> </div>
+                <!--registrazione-->
+                <div id="registerButton">
+                    <button type="submit" class="btn btn-danger btn-login">Signup</button>
+                </div>
+            </form>
+        </div> 
+    </div>
+
+    <!-- Script di Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="../heroes.js"></script>
+    <script>
+        loadHeroes();
+
+        document.getElementById("registerButton").addEventListener("click", async (event) => {
+            event.preventDefault(); 
+
+            const username = document.getElementById("username").value;
+            const name = document.getElementById("name").value;
+            const surname = document.getElementById("surname").value;
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            const conf_password = document.getElementById("conf_password").value;
+            const fav_hero = document.getElementById("fav_hero").value;
+
+            const payload = {
+                username: username,
+                name: name,
+                surname: surname,
+                email: email,
+                password: password,
+                fav_hero: fav_hero
+            };
+
+            if(password == conf_password){
+                try {
+                    const response = await fetch("/users/add", {
+                        method: "POST",
+                        headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                    });
+                    signup = await response.json()
+
+                    if (signup.result) {
+                        console.log("Registrazione avvenuto con successo");
+                        document.getElementById("ErrMessage").textContent = "Registrazione avvenuta con successo";
+                        document.getElementById("ErrMessage").style.color = "green";
+                    } else {
+                        document.getElementById("ErrMessage").textContent = signup.message;
+                        document.getElementById("ErrMessage").style.color = "red";
+                        return;
+                    }
+                } catch (error) {
+                    console.error("Errore di rete:", error);
+                    document.getElementById("ErrMessage").textContent = "Errore di rete: " + error.message;
+                    document.getElementById("ErrMessage").style.color = "red";
+                }
+            } else {
+                document.getElementById("ErrMessage").textContent = "Le password non corrispondono";
+                document.getElementById("ErrMessage").style.color = "red";
+            }
+        });
+
+    </script>
+    <script src="/navbar.js"></script>
+    <script> loadNavbar(); </script>
+</body>
+
+</html>
