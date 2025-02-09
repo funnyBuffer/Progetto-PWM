@@ -37,6 +37,7 @@
                 <!--Bottone Login-->
                 <div id="loginButton">
                     <button type="submit" class="btn btn-danger btn-login">Accedi</button>
+                    <p class="pt-4"> Don't have an account yet? <a href="/signup" style="text-decoration: none; color: #6f27a1;">Create an account</a> </p>
                 </div>
             </form>
         </div>
@@ -73,7 +74,6 @@
                     console.log("Login avvenuto con successo:", data);
                     localStorage.setItem("token", data.token);
                     window.location.href = "/home";
-                    /// reindirizzare sulla homepage
                 } else {
                     const errorData = await response.json();
                     document.getElementById("ErrMessage").textContent = "*" + errorData.message;

@@ -30,16 +30,24 @@ function loadNavbar() {
                         <a class="nav-link" href="/packs">Make packs</a>
                     </li>
                 </ul>
-                <ul class="navbar-nav">
+                <ul class="navbar-nav d-flex align-items-center">
                     <!-- Mostrato solo se l'utente NON è loggato -->
                     <li class="nav-item" id="sign-in-button">
                         <a class="nav-link text-danger fw-bold" href="/login">Sign In</a>
                     </li>
 
                     <!-- Mostrato solo se l'utente È loggato -->
-                    <li class="nav-item dropdown d-none" id="user-menu">
+                    <!-- Hexcoin -->
+                    <div id="hexcoin-link">
+                        <li class="nav-item d-none d-flex align-items-center me-3" id="hexcoin">
+                            <img src="icons/hexcoin.png" alt="Hexcoin" width="30" class="me-2">
+                            <p id="hexcoin-amount" class="mb-0"></p>
+                        </li>
+                    </div>
+                    <!-- profilo utente -->
+                    <li class="nav-item dropdown d-none d-flex align-items-center" id="user-menu">
                         <a class="nav-link dropdown-toggle" href="#" id="userMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <img id="userIcon" src="icons/user.png" alt="User Icon" width="30">
+                            <img id="imageProfile" src="icons/user.png" alt="User Icon" width="35" class="rounded-circle">
                             <p id="username"></p>
                         </a>
                         <ul class="dropdown-menu">
@@ -85,7 +93,52 @@ async function checkAuthToken() {
             document.getElementById("user-menu").classList.remove("d-none");  // Mostra User menu
             document.getElementById("userMenu").href = "/profile";  // Imposta il link dell'utente a /profile
             document.getElementById("username").innerText = data.user.username;  // Imposta il nome utente
+            document.getElementById("hexcoin").classList.remove("d-none");//mostra gli hexcoin
+
+            document.getElementById("hexcoin-link").addEventListener("click", async function() {
+                window.location.href = "/shop";
+            });
+
+            const idHerojson = await fetch("/marvel/favHero", {
+                method: "GET",  
+                headers: {
+                    "Content-Type": "application/json"  
+                },
+                credentials: "include"  
+            });
+            const hero = await idHerojson.json();
+            heroName = hero.name;
+            url = `public/characters`;
+            query=`name=${heroName}`;
+
+            const infoRes = await fetch("/marvel/marvellous", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ url: url ,query:query }),
+                        credentials: "include"
+                    });
+
+            const info = await infoRes.json();
+            console.log(info.data.data.results[0]);
+            let imageUrl = `${info.data.data.results[0].thumbnail.path}.${info.data.data.results[0].thumbnail.extension}`;
+            if(imageUrl.includes("image_not_available")) {
+                imageUrl = "icons/user.png";
+            } 
+            document.getElementById("imageProfile").src = imageUrl;
+
+            const creditsResponse = await fetch("/credits/getcredits", {
+                method: "GET",  
+                headers: {
+                    "Content-Type": "application/json"  
+                },
+                credentials: "include"  
+            });
     
+            const credits = await creditsResponse.json();
+            document.getElementById("hexcoin-amount").innerText = " "+ credits.credits;
+
             // Gestione clic sulla voce del menu per il logout
             document.getElementById("logout-link").addEventListener("click", async function() {
                 await fetch("/auth/logout", {

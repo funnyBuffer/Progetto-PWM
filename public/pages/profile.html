@@ -12,6 +12,7 @@
     }
   </style>
   <link rel="stylesheet" href="../css/css_default.css">
+  <link rel="stylesheet" href="../css/navbar.css">
 </head>
 <body class="d-flex justify-content-center align-items-center">
     <!-- Contenuto Profilo -->
@@ -51,15 +52,14 @@
                   <input type="text" class="form-control" id="surname" value="" required>
                 </div>
                 <div class="mb-3">
-                  <label for="favoriteHero" class="form-label">Supereroe Preferito</label>
-                  <select class="form-select" id="favoriteHero" required>
-                    <option selected>Spider-Man</option>
-                    <option>Iron Man</option>
-                    <option>Captain America</option>
-                    <option>Thor</option>
-                    <option>Hulk</option>
-                  </select>
-                </div>
+                  <div class="dropdown">
+                      <label class="form-label">Favorite Superhero</label>
+                      <input type="text" onkeyup="searchHero();" onkeydown="searchHero()" class="form-control" id="Superhero" data-bs-toggle="dropdown" aria-expanded="false" placeholder="Select your favorite superhero" required>
+                      <ul class="dropdown-menu w-100" id="superhero-form">
+                        <li><a class="dropdown-item d-none"></a></li>
+                      </ul>
+                    </div>
+              </div>
                 <div class="mb-3">
                   <label for="password" class="form-label">Old password</label>
                   <input type="password" class="form-control" id="oldPassword" placeholder="Old Password" required>
@@ -77,7 +77,10 @@
     </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
+  <script src="../heroes.js"></script>
   <script>
+    loadHeroes();
+
     (async function() {
   
       try {

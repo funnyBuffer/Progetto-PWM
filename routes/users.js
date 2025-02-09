@@ -40,38 +40,38 @@ router.post('/add', async (req, res) => {
     const { username, name, surname, email, password, fav_hero } = req.body;
 
     if (!username || !name || !surname || !email || !password || !fav_hero) {
-        return res.status(400).send({ error: "Tutti i campi sono obbligatori" });
+        return res.status(400).send({ message: "Tutti i campi sono obbligatori" });
     }
     /////////// Controlli sulle credenziali ///////////
     if (name.length < 3) {
-        res.status(400).send({message:"Nome troppo corto"});
+        res.status(400).send({result: false, message:"Nome troppo corto"});
         return;
     } 
     if (surname.length < 3) {
-        res.status(400).send({message:"Cognome troppo corto"});
+        res.status(400).send({result: false, message:"Cognome troppo corto"});
         return;
     }
     if(password.length < 8){
-        res.status(400).send({message:"Password troppo corta"});
+        res.status(400).send({result: false, message:"Password troppo corta"});
         return;
     }
     if((await findUser(username)).found){
-        res.status(400).send({message:"Username già esistente"});
+        res.status(400).send({result: false, message:"Username già esistente"});
         return;
     }
     if((await findEmail(email)).found){
-        res.status(400).send({message:"Email già usata"});
+        res.status(400).send({result: false, message:"Email già usata"});
         return;
     }
     if (isInvalidEmail(email)) {
-    res.status(400).send({message:"Email non valida"});
+    res.status(400).send({result: false, message:"Email non valida"});
     return;
     }
     await addUser(username, name, surname, email, password, fav_hero).then((result) => {
         if(result.success){
-            res.status(200).send({message:"Utente aggiunto con successo"});
+            res.status(200).send({result: true, message:"Account creato successo"});
         } else {
-            res.status(500).send({message:"Errore durante l'aggiunta dell'utente"});
+            res.status(500).send({result: false, message:"Errore durante l'aggiunta dell'utente"});
         }
     });
 });

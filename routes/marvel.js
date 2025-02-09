@@ -4,6 +4,34 @@ const jwt = require('jsonwebtoken');
 const {getFromMarvel, openPack, updateUser, findUser, profileCards, mergeCards} = require('../func.js');
 require('dotenv').config();
 
+router.get('/favHero', (req, res) => {
+    /*
+    #swagger.tags = ['Marvel']
+    #swagger.summary = 'Restituisce l'id dell'eroe preferito'
+    #swagger.description = 'Restituisce l'id dell'eroe preferito dell'utente autenticato'
+    #swagger.path = '/marvel/favHero'
+    */
+    const token = req.cookies.authToken;
+
+    if (!token) {
+        return res.status(403).json({ message: 'Accesso non autorizzato' });
+    } else {
+        jwt.verify(token, process.env.secret_key, async (err, decoded) => {
+            if (err) {
+                return res.status(403).json({ message: 'Token non valido' });
+            }
+
+            try {
+                const user = await findUser(decoded.username);
+                return res.status(200).json({ name: user.data.fav_hero });
+            } catch (error) {
+                console.error("Errore durante l'elaborazione:", error);
+                return res.status(500).json({ error: "Errore interno del server" });
+            }
+        });
+    }
+});
+
 router.post('/marvellous', (req, res) => {
     /*
     #swagger.tags = ['Marvel']

@@ -39,7 +39,7 @@ app.get('/login', (req, res) => {
 
 //// Pagina registrer
 app.get('/signup', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'pages', 'register.html'));
+  res.sendFile(path.join(__dirname, 'public', 'pages', 'signup.html'));
 });
 
 //// Pagina homepage

@@ -9,12 +9,13 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
         <!-- Stili personalizzati -->
         <link rel="stylesheet" href="../css/css_default.css">
+        <link rel="stylesheet" href="../css/navbar.css">
     </head>
     <body>
         <div class="container" style="padding-top: 80px;">
             <div class="row row-cols-xl-6 row-cols-lg-5 row-cols-md-3 row-cols-sm-2 row-cols-2 g-4 mt-5">
                 <div id="collection" class="col d-none">
-                    <div class="card h-100">
+                    <div class="card h-100" data-bs-toggle="modal"  data-bs-target="#infoModal">
                         <img id="image" src="" class="card-img-top" alt="...">
                         <div class="card-body">
                             <h5 id="nameCard" class="card-title" style="color: black;"></h5>
@@ -23,6 +24,39 @@
                 </div>
             </div>
         </div>
+
+        <!-- Modal -->
+        <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="infoModalLabel"></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-12 col-md-4 d-flex flex-column align-items-center">
+                                <img src="image.jpg" alt="Image" id="modalImage" class="img-fluid mb-3">
+                                <p id="modalDescription" class="text-center"></p> <!-- Descrizione -->
+                            </div>
+                            <div class="col-12 col-md-8">
+                                <div class="row">
+                                    <div class="col-12 col-md-4">
+                                        <p id="modalSeries"></p> <!-- Serie -->
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <p id="modalEvents"></p> <!-- Eventi -->
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <p id="modalComics"></p> <!-- Fumetti -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>                    
+                </div>
+            </div>
+          </div>
 
         <script>
 
@@ -71,8 +105,6 @@
 
                     try {
                         urlCard = `public/characters/${cardID}`;
-                        console.log(urlCard);
-                        console.log(cardID); 
 
                         const cardsResponse = await fetch("/marvel/marvellous", {
                             method: "POST",
@@ -100,12 +132,70 @@
                                 let imageUrl = `${information.data.data.results[0].thumbnail.path}.${information.data.data.results[0].thumbnail.extension}` || "icons/imageNotAvailable.jpg";
                                 if(imageUrl.includes("image_not_available")) {
                                     imageUrl = "icons/imageNotFound.png";
-                                }
-
+                                } 
                                 image.src = imageUrl;
+
                                 image.classList.add('square-img');
                                 clone.classList.remove('d-none');
                                 cardTemplate.before(clone);
+
+                                clone.addEventListener('click', () => {
+                                    const modalHeroname = document.querySelector('#infoModalLabel');
+                                    const modalImage = document.querySelector('#modalImage');
+                                    const modalDescription = document.querySelector('#modalDescription');
+                                    const modalSeries = document.querySelector('#modalSeries');
+                                    const modalEvents = document.querySelector('#modalEvents');
+                                    const modalComics = document.querySelector('#modalComics');
+
+                                    if (information.data.data.results.length > 0) {
+                                        const hero = information.data.data.results[0];
+
+                                        modalHeroname.innerHTML = `<strong>${hero.name}</strong>`;
+
+                                        let imageUrl = `${hero.thumbnail.path}.${hero.thumbnail.extension}`;
+                                        if (imageUrl.includes("image_not_available")) {
+                                            imageUrl = "icons/imageNotFound.png";
+                                        }
+                                        modalImage.src = imageUrl;
+
+                                        modalDescription.innerHTML = hero.description ? hero.description : "Description not available";
+
+                                        // Series 
+                                        if (hero.series.items.length > 0) {
+                                            modalSeries.innerHTML = `<strong>Series:</strong><br>` + 
+                                                hero.series.items.map(series => `• ${series.name}`).join("<br>");
+                                        } else {
+                                            modalSeries.innerHTML = "<strong>Series:</strong> Not available";
+                                        }
+
+                                        // Events 
+                                        if (hero.events.items.length > 0) {
+                                            modalEvents.innerHTML = `<strong>Events:</strong><br>` + 
+                                                hero.events.items.map(event => `• ${event.name}`).join("<br>");
+                                        } else {
+                                            modalEvents.innerHTML = "<strong>Events:</strong> Not available";
+                                        }
+
+                                        // Comics 
+                                        if (hero.comics.items.length > 0) {
+                                            modalComics.innerHTML = `<strong>Comics:</strong><br>` + 
+                                                hero.comics.items.map(comic => `• ${comic.name}`).join("<br>");
+                                        } else {
+                                            modalComics.innerHTML = "<strong>Comics:</strong> Not available";
+                                        }
+                                    }
+
+                                    // Mostra la modale
+                                    const modal = new bootstrap.Modal(document.getElementById('infoModal'));
+                                    modal.show();
+                                    document.getElementById('infoModal').addEventListener('hidden.bs.modal', function () {
+                                        const backdrop = document.querySelector('.modal-backdrop');
+                                        if (backdrop) {
+                                            backdrop.remove();
+                                        } 
+                                        document.body.style.overflow = ''; 
+                                    });
+                                });
                             } else {
                                 console.warn(`Nessun personaggio trovato per ID: ${cardID}`);
                             }
@@ -121,6 +211,7 @@
 
         </script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
         <script src="/navbar.js"></script>
         <script> loadNavbar(); </script>
     </body>

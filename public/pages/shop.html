@@ -9,14 +9,229 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
         <!-- Stili personalizzati -->
         <link rel="stylesheet" href="../css/css_default.css">
+        <link rel="stylesheet" href="../css/navbar.css">
+        <link rel="stylesheet" href="../css/shop.css">
+        <!-- Stile fumettoso-->
+        <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
     </head>
 <body>
-    <div class="container">
-        <h1>Shop</h1>
-        <p>Qui ci sarà l'acquisto di crediti (Hexcoin) e di pacchetti di figurine (Card Pack)</p>
+    <div class="container mt-5">
+        <!-- Monete -->
+        <div class="row g-3">
+            <div class="col-12 text-center">
+                <div class="fumetto">Coins</div>
+            </div>
+            <div class="col-md-4">
+                <div class="grid-item" id="coin1">
+                    <img src="icons/hexcoin.png" alt="Coin 1">
+                    <p>Quantity: 2</p>
+                    <button class="btn-buy fw-bold" id="buycoin1">Buy</button>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="grid-item" id="coin2">
+                    <img src="icons/hexcoin.png" alt="Coin 2">
+                    <p>Quantity: 5</p>
+                    <button class="btn-buy fw-bold" id="buycoin2">Buy</button>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="grid-item" id="coin3">
+                    <img src="icons/hexcoin.png" alt="Coin 3">
+                    <p>Quantity: 10</p>
+                    <button class="btn-buy fw-bold" id="buycoin3">Buy</button>
+                </div>
+            </div>
+            <!-- Spinner -->
+            <div id="spinner" class="spinner-border d-none" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <!-- Pacchetti -->
+            <div class="container text-center mt-2">
+                <div class="fumetto">Packets</div>
+                <div class="row justify-content-center">
+                    <div class="col-md-4 text-center p-3">
+                        <img src="icons/packet1.png" id="packet1" class="card-img-top mx-auto img-fluid packets" alt="Packet 1" style="width: 140px;" data-bs-toggle="modal" data-bs-target="#packModal">
+                    </div>
+                    <div class="col-md-4 text-center p-3">
+                        <img src="icons/packet2.png" id="packet2" class="card-img-top mx-auto img-fluid packets" alt="Packet 2" style="width: 140px;" data-bs-toggle="modal" data-bs-target="#packModal">
+                    </div>
+                    <div class="col-md-4 text-center p-3">
+                        <img src="icons/packet3.png" id="packet3" class="card-img-top mx-auto img-fluid packets" alt="Packet 3" style="width: 140px;" data-bs-toggle="modal" data-bs-target="#packModal">
+                    </div>
+                </div>
+            </div>
+            <!-- Modal -->
+            <div class="modal fade" id="packModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content text-center p-3">
+                        <img id="modalImage" src="icons/packet.png" class="superheroUnpack card-img-top mx-auto img-fluid" alt="Packet Modal" style="width: 140px;">
+                        <!--Carte spacchettate-->
+                        <div id="cardsContainer" class="mt-3 d-none">
+                            <div class="card h-50 d-none">
+                                <img id="image" src="" class="card-img-top">
+                                <div class="card-body">
+                                    <h5 id="nameCard" class="card-title" style="color: black;"></h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <script>
+
+        //// funzione per aprire il modal con l'immagine del pacchetto
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll(".packets").forEach(img => {
+                img.addEventListener("click", function () {
+                    document.getElementById("modalImage").src = this.src;
+                    document.getElementById("modalImage").alt = this.alt; 
+                });
+            });
+        });
+        
+        let credits = 0;
+        
+        (async function() {
+            try {
+                // Validazione autenticazione
+                const validationResponse = await fetch("/auth/valid", {
+                            method: "GET",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            credentials: "include"
+                        });
+        
+                if (!validationResponse.ok) {
+                    throw new Error("Errore nella validazione dell'utente.");
+                }
+    
+                const cookie = await validationResponse.json();
+                const creditsResponse = await fetch("/credits/getcredits", {
+                    method: "GET",  
+                    headers: {
+                        "Content-Type": "application/json"  
+                    },
+                    credentials: "include"  
+                });
+        
+                const creditsJson = await creditsResponse.json();
+                credits = creditsJson.credits;
+
+                document.getElementById("coin1").addEventListener("click", () => updateCredits(2));
+                document.getElementById("coin2").addEventListener("click", () => updateCredits(5));
+                document.getElementById("coin3").addEventListener("click", () => updateCredits(10));
+
+                document.getElementById("modalImage").addEventListener("click", () => unpack(1, 3));
+
+             } catch (error) {
+                console.error(error);
+            } 
+        })();
+
+        async function unpack(cost, quantity){
+            if (credits >= cost) {
+                updateCredits(-cost);
+                const response = await fetch("/marvel/unpack", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    credentials: "include",
+                    body: JSON.stringify({ quantity: quantity })
+                });
+                const pack = await response.json();
+                console.log(pack);
+                const cardTemplate = document.getElementsByClassName('card')[0];
+                const clone = cardTemplate.cloneNode(true);
+
+                for (const card of pack.cards){
+                    urlCard = `public/characters/${card}`;
+                    const cardsContainer = document.getElementById('cardsContainer');
+                    const cardsResponse = await fetch("/marvel/marvellous", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({ url: urlCard ,query:'' }),
+                                credentials: "include"
+                            });
+
+                    const information = await cardsResponse.json();
+                    console.log("INformazione:" + information.data.data.results[0].name);
+                    
+                    const title = clone.getElementsByClassName('card-title')[0];
+                    const image = clone.getElementsByClassName('card-img-top')[0];
+
+                    title.innerHTML = information.data.data.results[0].name;
+                    let imageUrl = `${information.data.data.results[0].thumbnail.path}.${information.data.data.results[0].thumbnail.extension}` || "icons/imageNotAvailable.jpg";
+                                if(imageUrl.includes("image_not_available")) {
+                                    imageUrl = "icons/imageNotFound.png";
+                                } 
+                    image.src = imageUrl;
+                    clone.classList.remove('d-none');
+                    cardTemplate.before(clone);
+                }
+
+                //animazione spacchettamento
+                document.getElementById('modalImage').addEventListener('click', function() {
+                    const packImage = document.getElementById('modalImage');
+                    // Aggiungi classe per animazione di apertura
+                    packImage.classList.add('animate-open');
+                    
+                    // Dopo l'animazione, nascondi l'immagine della bustina e mostra le carte
+                    setTimeout(function() {
+                        packImage.classList.remove('animate-open');
+                        packImage.classList.add('d-none');
+                        document.getElementById('cardsContainer').classList.remove('d-none');
+                    }, 1000); 
+                });
+                
+            } else {
+                return alert("Non hai abbastanza crediti per acquistare questo pacchetto");
+            }
+        }
+
+        async function updateCredits(quantity) {
+            const spinner = document.getElementById("spinner");
+            
+            spinner.classList.remove("d-none");
+            
+            try {
+                const response = await fetch("/credits/updatecredits", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                credentials: "include",
+                body: JSON.stringify({ credits: quantity })
+                });
+
+                new_credits = await response.json();
+
+                if (new_credits.result) {
+                console.log("Crediti aggiornati");
+                } else {
+                console.error("Errore durante l'aggiornamento dei crediti");
+                }
+            } catch (error) {
+                console.error("Errore nella richiesta", error);
+            } finally {
+                spinner.classList.add("d-none");
+                credits = new_credits.credits;
+                document.getElementById("hexcoin-amount").innerText = " "+ new_credits.credits;
+            }
+        }
+
+
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="/navbar.js"></script>
     <script> loadNavbar(); </script>
 
