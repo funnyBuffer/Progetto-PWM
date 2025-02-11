@@ -1,23 +1,335 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Proposals</title>
-        <link rel="icon" href="../../icons/logo.png" type="image/png">
-        <!-- Link al CSS di Bootstrap -->
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-        <!-- Stili personalizzati -->
-        <link rel="stylesheet" href="../css/css_default.css">
-        <link rel="stylesheet" href="../css/navbar.css">
-    </head>
-    <body>
-        <div class="container">
-            <h1>Stand</h1>
-            <p>Qui ci saranno gli scambi disponibili</p>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proposals</title>
+    <link rel="icon" href="../../icons/logo.png" type="image/png">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Stili personalizzati -->
+    <link rel="stylesheet" href="../../css/css_default.css">
+    <link rel="stylesheet" href="../../css/navbar.css">
+    <link rel="stylesheet" href="../../css/css_prop.css">
+    <!-- Stile fumettoso -->
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Offerte disponibili -->
+    <div class="container pt-5" style="margin-top: 80px;">
+        <div class="row d-flex flex-column align-items-center" id="offersContainer">
+            <!-- Le offerte vengono inserite qui -->
         </div>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="/navbar.js"></script>
-        <script> loadNavbar(); </script>
-    </body>
+    </div>
+
+    <!-- template per le propose -->
+    <template id="proposalTemplate">
+        <div class="card mb-3 mx-auto p-2">
+            <div class="card-body">
+                <h5 class="card-title text-dark">Proposal by <span class="proposal-user"></span></h5>
+                <button class="btn btn-primary more-info">More Info</button>
+                <button class="btn btn-success make-offer">Make an Offer</button>
+            </div>
+        </div>
+    </template>
+
+
+    <!-- Nessuna offerta -->
+    <div id="zeroOffer" class="d-flex justify-content-center align-items-center d-none" style="height: 100vh; z-index: 200;">
+        <div class="fumetto text-center">There are no proposals at the moment, come back later</div>
+    </div>
+
+    <!-- Modal per i dettagli dell'offerta -->
+    <div class="modal fade" id="offerModal" tabindex="-1" aria-labelledby="offerModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="offerModalLabel">About the offer</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Offered by :</strong> <span id="modalUser"></span></p>
+                    <p><strong>Offered cards:</strong> <span id="modalOfferedCards"></span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel per inviare una proposta -->
+    <div id="offerPanel" class="container mt-4 p-4 border rounded shadow-lg bg-light d-none" style="z-index: 100;">
+        <h4 class="text-center fw-bold">MAKE YOUR OFFER</h4>
+
+        <div class="mb-3 d-flex align-items-center gap-2">
+            <div class="dropdown w-100">
+                <input type="text" 
+                    onkeyup="searchCollection();" 
+                    onkeydown="searchCollection()" 
+                    class="form-control" 
+                    id="Superhero" 
+                    placeholder="Search in the collection"
+                    onfocus="document.getElementById('superhero-form').classList.add('show')">
+                
+                <ul class="dropdown-menu w-100" id="superhero-form">
+                    <!-- Verranno aggiunti dinamicamente i risultati -->
+                </ul>
+            </div>
+            <button class="btn btn-primary" onclick="addCard()">Add Card</button>
+        </div>
+
+        <!-- Template Card Nascosto -->
+        <div id="cardTemplate" class="d-none">
+            <div class="col">
+                <div class="packet-card card h-100 shadow">
+                    <img src="" class="card-img-top img-fluid" style="height: 200px; object-fit: cover;">
+                    <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                        <h5 class="card-title mt-2 text-center text-dark"></h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cards Container -->
+        <div id="cardsContainer" class="mt-3 row row-cols-1 row-cols-md-3 g-3 d-none"></div>
+
+
+        <!-- Pulsanti di azione -->
+        <div class="text-center mt-4">
+            <button class="btn btn-success px-4" onclick="sendOffer()">Send Offer</button>
+            <button class="btn btn-secondary px-4 ms-2" onclick="closeOfferPanel()">Cancel</button>
+        </div>
+    </div>
+
+
+    <script src="../../heroes.js"></script>
+    <script>
+        
+        let selectedCards = [];
+        let currentTradeId = null;
+        let currentUser2 = null;
+        let username = null;
+        let cachedCards = new Set();
+        let lastSearchTerm = "";
+
+        async function fetchUserInfo() {
+            try {
+                const response = await fetch("/auth/valid", {
+                    method: "GET",
+                    credentials: "include"
+                });
+
+                if (!response.ok) throw new Error("Errore nel recupero dell'username");
+
+                const data = await response.json();
+                username = data.user.username;
+
+                const infoResponse = await fetch("/users/info", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username: username }),
+                    credentials: "include"
+                });
+
+                if (!infoResponse.ok) throw new Error("Errore nel recupero delle carte");
+
+                const infoData = await infoResponse.json();
+                cachedCards = new Set(infoData.userCards || []);
+
+            } catch (error) {
+                console.error("Errore nel recupero delle informazioni utente:", error);
+            }
+        }
+
+        // Funzione di ricerca
+        async function searchCollection() {
+            const searchInput = document.getElementById("Superhero").value.trim().toLowerCase();
+
+            if (searchInput.length < 3 || searchInput === lastSearchTerm) return;
+            lastSearchTerm = searchInput;
+
+            const url = "public/characters";
+            const query = `limit=4&nameStartsWith=${searchInput}`;
+
+            try {
+                const response = await fetch("/marvel/marvellous", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ url, query }),
+                    credentials: "include"
+                });
+
+                if (!response.ok) throw new Error("Errore nel recupero dei supereroi");
+
+                const heroes = await response.json();
+                const dropdown = document.getElementById("superhero-form");
+                dropdown.innerHTML = ""; 
+                dropdown.style.display = "block";
+
+                // **Convertire cachedCards in un Set di ID numerici**
+                const ownedCardIds = new Set([...cachedCards].map(item => parseInt(item.card, 10)));
+
+                heroes.data.data.results.forEach(hero => {
+                    if (ownedCardIds.has(hero.id)) {  
+                        const li = document.createElement("li");
+                        const a = document.createElement("a");
+                        a.classList.add("dropdown-item");
+                        a.textContent = hero.name;
+                        a.addEventListener("click", () => {
+                            document.getElementById("Superhero").value = hero.name;
+                            dropdown.classList.remove("show");
+                            dropdown.style.display = "none";
+                        });
+                        li.appendChild(a);
+                        dropdown.appendChild(li);
+                    } 
+                });
+            } catch (error) {
+                console.error("Errore nella ricerca della collezione:", error);
+            }
+        }
+
+        async function loadOffers() {
+            try {
+                const response = await fetch("/trade/showProposal", {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include"
+                });
+
+                if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+
+                const data = await response.json();
+                if (!data || !data.trades || !Array.isArray(data.trades.trades)) {
+                    document.getElementById("zeroOffer").classList.remove("d-none");
+                    return;
+                }
+
+                const offers = data.trades.trades;
+                const container = document.getElementById("offersContainer");
+                const template = document.getElementById("proposalTemplate");
+                container.innerHTML = "";
+                offers.forEach(proposal => {
+                    if(proposal.user1.username != username){
+                        const user1CardNames = proposal.user1.offered_cards
+                        const user1 = proposal.user1.username;
+                        const clone = template.content.cloneNode(true);
+                        clone.querySelector(".proposal-user").textContent = user1;
+                        clone.querySelector(".more-info").addEventListener("click", () => {
+                            showDetails(user1, user1CardNames.join(', '));
+                        });
+                        
+                        clone.querySelector(".make-offer").addEventListener("click", () => {
+                            openOfferPanel(proposal._id);
+                        });
+                        
+                        container.appendChild(clone);
+                    }
+                });
+
+            } catch (error) {
+                console.error("Errore durante il caricamento delle offerte:", error.message);
+            }
+        }
+
+        async function showDetails(user, IDofferedCards) {
+            document.getElementById("modalUser").textContent = user;
+            let offeredCards, requestedCards;
+            try{
+                url=`public/characters/${IDofferedCards}`;
+                query="";
+                const infoCard = await fetch("/marvel/marvellous", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({ url: url , query: query }),
+                                credentials: "include"
+                            });
+
+                info = await infoCard.json();
+                offeredCards = info.data.data.results[0].name;
+
+            }catch(error){
+                console.log(error);
+            }
+            document.getElementById("modalOfferedCards").textContent = offeredCards;
+            new bootstrap.Modal(document.getElementById("offerModal")).show();
+        }
+
+        function openOfferPanel(trade_id) {
+            currentTradeId = trade_id;
+            selectedCards = [];
+            document.getElementById("cardsContainer").innerHTML = "";
+            document.getElementById("cardsContainer").classList.add("d-none");
+            document.getElementById("offerPanel").classList.remove("d-none");
+        }
+
+        function closeOfferPanel() {
+            document.getElementById("offerPanel").classList.add("d-none");
+        }
+
+        async function addCard() {
+            const cardname = document.getElementById("Superhero").value.trim();
+            
+            if (!cardname) return alert("Please enter a card name!");
+            if (selectedCards.includes(cardname)) return alert("This card is already added!");
+
+            try {
+                const url = "public/characters";
+                const query = `limit=1&nameStartsWith=${cardname}`;
+                const response = await fetch("/marvel/marvellous", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ url, query }),
+                    credentials: "include"
+                });
+
+                if (!response.ok) throw new Error("Failed to fetch hero data");
+
+                const info = await response.json();
+                const hero = info.data.data.results[0];
+
+                if (!hero) return alert("Hero not found!");
+
+                const template = document.getElementById("cardTemplate");
+                const clone = template.firstElementChild.cloneNode(true);
+                
+                clone.querySelector(".card-title").textContent = hero.name;
+                clone.querySelector(".card-img-top").src = `${hero.thumbnail.path}.${hero.thumbnail.extension}`;
+                
+                selectedCards.push(hero.id);
+
+                document.getElementById("cardsContainer").appendChild(clone);
+                document.getElementById("cardsContainer").classList.remove("d-none");
+            } catch (error) {
+                console.error("Error adding card:", error);
+            }
+        }
+
+
+        async function sendOffer() {
+            if (selectedCards.length === 0) return alert("You must add at least one card!");
+
+            try {
+                const response = await fetch("/trade/offer", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ trade_id: currentTradeId, user2: currentUser2, cards: selectedCards }),
+                    credentials: "include"
+                });
+
+                const data = await response.json();
+                alert(data.message);
+                closeOfferPanel();
+            } catch (error) {
+                console.error("Error sending the offer:", error);
+            }
+        }
+
+        loadOffers();
+        fetchUserInfo();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/navbar.js"></script>
+    <script> loadNavbar(); </script> 
+</body>
 </html>

@@ -129,10 +129,7 @@
                                 nameCard.innerHTML = information.data.data.results[0].name;
                                 //overview.innerHTML = information.data.data.results[0].description || "Description not available";
 
-                                let imageUrl = `${information.data.data.results[0].thumbnail.path}.${information.data.data.results[0].thumbnail.extension}` || "icons/imageNotAvailable.jpg";
-                                if(imageUrl.includes("image_not_available")) {
-                                    imageUrl = "icons/imageNotFound.png";
-                                } 
+                                let imageUrl = `${information.data.data.results[0].thumbnail.path}.${information.data.data.results[0].thumbnail.extension}` || "icons/imageNotFound.png";
                                 image.src = imageUrl;
 
                                 image.classList.add('square-img');

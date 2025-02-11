@@ -174,7 +174,7 @@ router.delete('remove', async (req, res) => {
     });
 });
 
-router.get('/show', async (req, res) => {
+router.get('/showOffer', async (req, res) => {
     /*
     #swagger.tags = ['Trade']
     #swagger.summary = 'Mostra le offerte per gli scambi'
@@ -198,6 +198,43 @@ router.get('/show', async (req, res) => {
             }
 
             const trades = await showTrades(user.data.username);
+
+            if (trades.success) {
+                return res.status(200).send({ trades: trades});
+            } else {
+                console.log(result.message);
+                return res.status(500).send({ message: "Errore durante il caricamento delle offerte, riprovare" });
+            }
+        } catch (error) {
+            return res.status(500).send({ message: "Errore interno del server." });
+        }
+    });
+});
+
+router.get('/showProposal', async (req, res) => {
+    /*
+    #swagger.tags = ['Trade']
+    #swagger.summary = 'Mostra le offerte per gli scambi'
+    #swagger.description = 'Fornisce tutte le offerte per i possibili scambi' 
+    #swagger.path = '/trade/show'
+    */
+    const token = req.cookies.authToken;
+    if (!token) {
+        return res.status(403).send({ error: "Accesso non autorizzato" });
+    }
+
+    jwt.verify(token, process.env.secret_key, async (err, decoded) => {
+        if (err) {
+            return res.status(403).send({ error: "Token non valido" });
+        }
+
+        try {
+            const user = await findUser(decoded.username);
+            if (!user.found) {
+                return res.status(404).send({ error: "Utente non trovato" });
+            }
+
+            const trades = await showTrades();
 
             if (trades.success) {
                 return res.status(200).send({ trades: trades});

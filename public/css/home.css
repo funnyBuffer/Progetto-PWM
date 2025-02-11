@@ -1,0 +1,43 @@
+html, body {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+.main-content {
+  flex-grow: 1;  /* Garantisce che il contenuto prenda tutto lo spazio disponibile */
+}
+
+footer {
+  margin-top: auto;  /* Spinge il footer in fondo alla pagina */
+}
+
+.card {
+  max-height: 400px; 
+  overflow: hidden; 
+}
+
+.card-img-top {
+  width: 100%;
+  height: 400px;  /* Puoi aumentare questa altezza se vuoi immagini più grandi */
+  object-fit: cover;  /* Garantisce che l'immagine non venga deformata */
+}
+
+.square-img {
+  object-fit: cover;
+  width: 100%; 
+  height: 270px;
+}
+
+.fumetto {
+  font-size: 50px;
+  color: #ff0000;
+  text-transform: uppercase;
+  text-shadow: 4px 4px 0px #000, 8px 8px 0px yellow;
+  display: inline-block;
+  padding: 20px;
+  border: 5px solid black;
+  background-color: white;
+  font-family: 'Bangers', cursive;
+}

@@ -57,3 +57,25 @@ async function searchHero(){
         dropdown.appendChild(li);
     });
 }
+
+async function fetchCardName(cardID) {
+    const urlCard = `public/characters/${cardID}`;
+    try {
+        const cardsResponse = await fetch("/marvel/marvellous", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ url: urlCard, query: '' }),
+            credentials: "include"
+        });
+
+        if (!cardsResponse.ok) throw new Error("Errore nel recupero del nome della carta");
+
+        const information = await cardsResponse.json();
+        return information.data.data.results[0].name;
+    } catch (error) {
+        console.error("Errore nel recupero del nome della carta:", error.message);
+        return `Carta non trovata (${cardID})`; 
+    }
+}

@@ -666,8 +666,13 @@ async function showTrades(username) {
         const connection = await connectToDatabase();
         const database = connection.db;
         client = connection.client;
+        let trades;
 
-        const trades = await database.collection('Trades').find({ "user1.username": username, "status":"pending" }).toArray();
+        if(username==null){
+            trades = await database.collection('Trades').find({ "status":"pending" }).toArray();
+        } else {
+            trades = await database.collection('Trades').find({ "user1.username": username, "status":"pending" }).toArray();
+        }
 
         return { success: true, trades: trades };
     

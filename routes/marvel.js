@@ -80,5 +80,44 @@ router.post('/unpack', async (req, res) => {
     });
 });
 
+router.post('/getImages', async (req, res) => {
+    const { quantity } = req.body;
+
+    try {
+        const images = [];
+        
+        while (images.length < 3) { // Finché non ho almeno 3 immagini valide
+            let cards = openPack(quantity); // Richiedi un pack di carte
+            let i = 0;
+            let validImages = 0;
+            
+            // Prova a recuperare 3 immagini dal pack di carte
+            while (validImages < quantity && i < cards.length) {
+                try {
+                    const result = await getFromMarvel(`public/characters/${cards[i]}`, "");
+                    const image = result.data.results[0].thumbnail.path + "." + result.data.results[0].thumbnail.extension;
+
+                    // Verifica se l'immagine è valida
+                    if (image && image !== 'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg') {
+                        images.push(image);
+                        validImages++;
+                    }
+                } catch (error) {
+                    console.error("Errore nel recupero dell'immagine per il personaggio", cards[i]);
+                }
+                i++;
+            }
+        }
+
+        // Restituisce le immagini valide
+        return res.json({ success: true, data: images });
+    } catch (error) {
+        console.error("Errore durante l'elaborazione:", error);
+        return res.status(500).send({ error: "Errore interno del server" });
+    }
+});
+
+
+
 
 module.exports = router;

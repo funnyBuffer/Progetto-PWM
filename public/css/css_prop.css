@@ -1,0 +1,41 @@
+#offerPanel {
+    background-color: white; /* Sfondo bianco per risaltare */
+    padding: 20px;
+    border-radius: 10px; /* Angoli arrotondati */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Ombra per evidenziarlo */
+    max-width: 600px;
+    margin: auto; /* Centrare nella pagina */
+}
+
+#offerPanel h4 {
+    font-family: 'Bangers', cursive; /* Font stile fumetto */
+    color: black;
+    text-align: center;
+}
+
+#cardsContainer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    padding-top: 10px;
+}
+
+#cardSearch {
+    border-radius: 5px;
+    padding: 8px;
+    font-size: 1.1rem;
+}
+
+.btn {
+    font-weight: bold;
+    border-radius: 8px;
+}
+
+.btn-success {
+    background-color: #28a745; /* Verde più acceso */
+}
+
+.btn-secondary {
+    background-color: #6c757d; /* Grigio scuro */
+}
