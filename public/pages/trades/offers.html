@@ -10,26 +10,33 @@
         <!-- Stili personalizzati -->
         <link rel="stylesheet" href="../css/css_default.css">
         <link rel="stylesheet" href="../css/navbar.css">
+        <!-- Stile fumettoso-->
+        <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
     </head>
     <!-- Offerte disponibili per l'utente -->
     <body>
-        <div class="container pt-5" style="padding-top: 80px;">
-            <div class="row" id="offersContainer">
+        <div class="container pt-5" style="margin-top: 80px;">
+            <div class="row d-flex flex-column align-items-center" id="offersContainer">
+                <!-- Le offerte verranno inserite qui -->
             </div>
+        </div>
+
+        <div id="zeroOffer" class="d-flex justify-content-center align-items-center d-none" style="height: 100vh; z-index: 200;">
+            <div class="fumetto text-center">You have no offers at the moment, come back later</div>
         </div>
     
         <!-- Modal -->
         <div class="modal fade" id="offerModal" tabindex="-1" aria-labelledby="offerModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
+            <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="offerModalLabel">Dettagli Offerta</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <p><strong>Offerto da:</strong> <span id="modalUser"></span></p>
-                        <p><strong>Carte offerte:</strong> <span id="modalOfferedCards"></span></p>
-                        <p><strong>Carte richieste:</strong> <span id="modalRequestedCards"></span></p>
+                        <p><strong>Offered by :</strong> <span id="modalUser"></span></p>
+                        <p><strong>Posted cards:</strong> <span id="modalOfferedCards"></span></p>
+                        <p><strong>Offered cards:</strong> <span id="modalRequestedCards"></span></p>
                     </div>
                 </div>
             </div>
@@ -46,33 +53,77 @@
                 if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
 
                 const data = await response.json();
-                console.log("Risposta server:", data);  // DEBUG: Vedi la struttura dei dati
 
-                if (!Array.isArray(data.trades)) {
-                    throw new Error("La risposta del server non contiene un array di offerte");
+                // Non ci sono offerte per questo utente
+                if (!data || !data.trades || !data.trades.trades || !Array.isArray(data.trades.trades)) {
+                    document.getElementById("zeroOffer").classList.remove("d-none");
+                    throw new Error("La risposta del server non contiene un array valido di trade o è vuoto");
                 }
 
-                const offers = data.trades;  // Estraggo l'array corretto
+                const offers = data.trades.trades;  
                 const container = document.getElementById("offersContainer");
                 container.innerHTML = "";
 
-                offers.forEach(offer => {
-                    const card = document.createElement("div");
-                    card.classList.add("col-md-4");
-                    card.innerHTML = `
-                        <div class="card mb-3">
-                            <div class="card-body">
-                                <h5 class="card-title">Offert by ${offer.user1.username}</h5>
-                                <button class="btn btn-primary" onclick="showDetails('${offer.user1.username}', '${offer.offeredCards}', '${offer.requestedCards}')">More Info</button>
-                                <button class="btn btn-success">Accetta</button>
-                                <button class="btn btn-danger">Rifiuta</button>
-                            </div>
-                        </div>`;
-                    container.appendChild(card);
+                // ciclo attraverso ogni proposta di trade
+                offers.forEach(proposal => {
+                    if (Array.isArray(proposal.user2)) {  
+                        proposal.user2.forEach(async offer => {
+                            if (offer.username) {  // si ignora le offerte con username nullo
+                                const user1CardNames = await Promise.all(proposal.user1.offered_cards.flat().map(cardID => fetchCardName(cardID)));
+                                const user2CardNames = await Promise.all(offer.offered_cards.map(cardID => fetchCardName(cardID)));
+                                const card = document.createElement("div");
+                                card.classList.add("col-md-4");
+                                card.innerHTML = `
+                                    <div class="card mb-3">
+                                        <div class="card-body">
+                                            <h5 class="card-title" style="color:black">Offert by ${offer.username}</h5>
+                                            <button class="btn btn-primary" onclick="showDetails('${proposal.user1.username}','${user2CardNames.join(', ')}', '${user1CardNames.join(', ')}')">More Info</button>
+                                            <button class="btn btn-success" onclick="acceptTrade('${proposal._id}', '${offer.username}')">Accetta</button>
+                                            <button class="btn btn-danger" onclick="rejectTrade('${proposal._id}', '${offer.username}')">Rifiuta</button>
+                                        </div>
+                                    </div>`;
+                                container.appendChild(card);
+                            }
+                        });
+                    }
                 });
 
             } catch (error) {
                 console.error("Errore durante il caricamento delle offerte:", error.message);
+            }
+        }
+
+        async function acceptTrade(trade_id, username2) {
+            try {
+                const response = await fetch("/trade/accept", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ trade_id: trade_id, user2: username2 }),
+                    credentials: "include"
+                });
+                data = await response.json();
+                alert(data.message);
+            } catch (error) {
+                console.error("Errore nell'accettare l'offerta:", error.message);
+            }
+        }
+
+        async function rejectTrade(trade_id, username2) {
+            try {
+                const response = await fetch("/trade/reject", {
+                    method: "DELETE",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ trade_id: trade_id, user2: username2 }),
+                    credentials: "include"
+                });
+                data = await response.json();
+                alert(data.message);
+            } catch (error) {
+                console.error("Errore nel rifiutare l'offerta:", error.message);
             }
         }
 
@@ -81,6 +132,28 @@
             document.getElementById("modalOfferedCards").textContent = offeredCards;
             document.getElementById("modalRequestedCards").textContent = requestedCards;
             new bootstrap.Modal(document.getElementById("offerModal")).show();
+        }
+
+        async function fetchCardName(cardID) {
+            const urlCard = `public/characters/${cardID}`;
+            try {
+                const cardsResponse = await fetch("/marvel/marvellous", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ url: urlCard, query: '' }),
+                    credentials: "include"
+                });
+
+                if (!cardsResponse.ok) throw new Error("Errore nel recupero del nome della carta");
+
+                const information = await cardsResponse.json();
+                return information.data.data.results[0].name;
+            } catch (error) {
+                console.error("Errore nel recupero del nome della carta:", error.message);
+                return `Carta non trovata (${cardID})`; 
+            }
         }
 
         loadOffers();

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const {addNewTrade, findUser, countOccurrences, addOffer, confirmOffer, removeTrade, showTrades} = require('../func.js');
+const {addNewTrade, findUser, countOccurrences, addOffer, confirmOffer, removeTrade, showTrades, rejectOffer} = require('../func.js');
 
 /* 
 Impostazione del trade
@@ -109,18 +109,18 @@ router.post('/accept', async (req, res) => {
     const { trade_id, user2 } = req.body;
     const token = req.cookies.authToken;
     if (!token) {
-        return res.status(403).send({ error: "Accesso non autorizzato" });
+        return res.status(403).send({ message: "Accesso non autorizzato" });
     }
 
     jwt.verify(token, process.env.secret_key, async (err, decoded) => {
         if (err) {
-            return res.status(403).send({ error: "Token non valido" });
+            return res.status(403).send({ message: "Token non valido" });
         }
 
         try {
             const user1 = await findUser(decoded.username);
             if (!user1.found) {
-                return res.status(404).send({ error: "Utente non trovato" });
+                return res.status(404).send({ message: "Utente non trovato" });
             }
 
             const result = await confirmOffer(trade_id, user2);
@@ -197,12 +197,51 @@ router.get('/show', async (req, res) => {
                 return res.status(404).send({ error: "Utente non trovato" });
             }
 
-            const trades = await showTrades(user);
+            const trades = await showTrades(user.data.username);
+
             if (trades.success) {
-                return res.status(200).send({ trades: trades.data });
+                return res.status(200).send({ trades: trades});
             } else {
                 console.log(result.message);
                 return res.status(500).send({ message: "Errore durante il caricamento delle offerte, riprovare" });
+            }
+        } catch (error) {
+            return res.status(500).send({ message: "Errore interno del server." });
+        }
+    });
+});
+
+router.delete('/rejection', async (req, res) => {
+    /*
+    #swagger.tags = ['Trade']
+    #swagger.summary = 'Rifiuta una proposta di scambio'
+    #swagger.description = 'Rifiuta singolarmente le proposte di scambio da parte di un utente' 
+    #swagger.path = '/trade/rejection'
+    */
+    const { trade_id, user2 } = req.body;
+    const token = req.cookies.authToken;
+    if (!token) {
+        return res.status(403).send({ error: "Accesso non autorizzato" });
+    }
+
+    jwt.verify(token, process.env.secret_key, async (err, decoded) => {
+        if (err) {
+            return res.status(403).send({ error: "Token non valido" });
+        }
+
+        try {
+            const user = await findUser(decoded.username);
+            if (!user.found) {
+                return res.status(404).send({ error: "Utente non trovato" });
+            }
+
+            const trades = await rejectOffer(trade_id, user2);
+
+            if (trades.success) {
+                return res.status(200).send({ message:"Offerta rifiutata" });
+            } else {
+                console.log(result.message);
+                return res.status(500).send({ message: "Errore durante il rifiuto dell'offerta, riprovare" });
             }
         } catch (error) {
             return res.status(500).send({ message: "Errore interno del server." });

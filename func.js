@@ -384,10 +384,7 @@ async function addNewTrade(user1, cards) {
                 offered_cards: [cards] 
             },
             user2: [
-                {
-                    username: null,
-                    offered_cards: []
-                }
+                
             ],
             status: 'pending'
         };
@@ -641,8 +638,10 @@ async function removeTrade(trade_id) {
             await mergeCards(user.username, user.offered_cards);
         }
 
+        const tradeObjectId = new ObjectId(trade_id);
+
         const updatedTrade = {
-            id: trade_id,
+            _id: tradeObjectId,
             status: 'cancelled'
         };
 
@@ -667,8 +666,9 @@ async function showTrades(username) {
         const connection = await connectToDatabase();
         const database = connection.db;
         client = connection.client;
-        
-        const trades = await database.collection('trades').find({ "user1.username": username }).toArray();
+
+        const trades = await database.collection('Trades').find({ "user1.username": username, "status":"pending" }).toArray();
+
         return { success: true, trades: trades };
     
     } catch (error) {
@@ -680,7 +680,32 @@ async function showTrades(username) {
     }
 }
 
+async function rejectOffer(trade_id, user2){
+    let client;
+    try {
+        const connection = await connectToDatabase();
+        const database = connection.db;
+        client = connection.client;
 
+        const tradeObjectId = new ObjectId(trade_id);
+
+        const trades = await database.collection('Trades').deleteOne({
+            "_id": tradeObjectId,
+            "user2.username": user2,
+            "status": "pending"
+          });
+          
+
+        return { success: true, trades: trades };
+    
+    } catch (error) {
+        return { success: false, message: "Errore interno del server." };
+    } finally {
+        if (client) {
+            await client.close();
+        }
+    }
+}
 
 module.exports = { addUser,
                    updateUser,
@@ -700,5 +725,6 @@ module.exports = { addUser,
                    addOffer,
                    confirmOffer,
                    removeTrade,
-                   showTrades
+                   showTrades,
+                   rejectOffer
                 };
