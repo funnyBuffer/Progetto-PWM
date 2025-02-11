@@ -21,6 +21,7 @@ router.post('/add', async (req, res) => {
     #swagger.path = '/trade/add'
     */
     const { cards } = req.body;
+    console.log("Carte ricevute:", cards);
     const token = req.cookies.authToken;
     if (!token) {
         return res.status(403).send({ error: "Accesso non autorizzato" });

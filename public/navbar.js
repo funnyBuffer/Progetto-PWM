@@ -121,7 +121,7 @@ async function checkAuthToken() {
                     });
 
             const info = await infoRes.json();
-            console.log(info.data.data.results[0]);
+            
             let imageUrl = `${info.data.data.results[0].thumbnail.path}.${info.data.data.results[0].thumbnail.extension}`;
             if(imageUrl.includes("image_not_available")) {
                 imageUrl = "icons/user.png";
