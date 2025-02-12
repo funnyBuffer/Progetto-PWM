@@ -27,11 +27,11 @@
         <div class="col-md-4">
           <div class="card mb-4">
             <div class="card-header">
-              Statistiche
+              Statistics
             </div>
             <div class="card-body">
-              <p class="card-text">Carte collezionate: <strong id="cards"></strong></p>
-              <p class="card-text">Supereroe preferito: <strong id="favHero"></strong></p>
+              <p class="card-text">Collected cards: <strong id="cards"></strong></p>
+              <p class="card-text">Favorite superhero: <strong id="favHero"></strong></p>
             </div>
           </div>
         </div>
@@ -39,7 +39,7 @@
         <div class="col-md-8">
           <div class="card">
             <div class="card-header">
-              Modifica Dati Personali
+              Edit Personal Data
             </div>
             <div class="card-body">
               <form id="profileForm">
@@ -70,9 +70,9 @@
                 </div>
                 <div class="mb-3">
                   <label for="password" class="form-label">New Password</label>
-                  <input type="password" class="form-control" id="newPassword"  placeholder="New Password" required>
+                  <input type="password" class="form-control" id="newPassword"  placeholder="New Password">
                 </div>
-                <button type="submit" class="btn btn-danger">Salva modifiche</button>
+                <button type="submit" class="btn btn-danger">save changes</button>
               </form>
             </div>
           </div>
@@ -117,44 +117,42 @@
         });
        
         const info = await response.json();
-
-        document.getElementById('user').textContent = info.username;
+        document.getElementById('user').innerHTML = cookie.user.username;
         document.getElementById('email').value = info.userEmail;
         document.getElementById('name').value = info.userName;
         document.getElementById('surname').value = info.userSurname;
         document.getElementById('cards').textContent = info.userCardsCount;
         document.getElementById('favHero').textContent = info.userFavHero;
   
-        document.getElementById('profileForm').addEventListener('submit', function(e) {
+        document.getElementById('profileForm').addEventListener('submit', async function(e) {
             e.preventDefault();
   
             // Raccogli i dati dal form
-            const username = document.getElementById('username').value;
+            const username = info.username;
             const email = document.getElementById('email').value;
-            const favoriteHero = document.getElementById('favoriteHero').value;
+            const favoriteHero = document.getElementById('Superhero').value;
             const oldPassword = document.getElementById('oldPassword').value;
             const newPassword = document.getElementById('newPassword').value;
             const name = document.getElementById('name').value;
             const surname = document.getElementById('surname').value;
-
-            const oldHashedPassword = crypto.createHash('sha256').update(password).digest('hex');
-
-            if( oldHashedPassword != info.password){
-                alert('Old password is wrong, try again'); 
-                return; 
-            } else if (oldPassword == null){
-                console.log('Dati aggiornati:', { username, username, name, surname, email, password, favoriteHero });
-      
-                // Invia i dati al server
-                fetch('/users/update', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json'
-                  },
-                  body: JSON.stringify({ username, email, favoriteHero })
-                })
-            }
-
+  
+            // Invia i dati al server
+            result = await fetch('/users/update', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ username:username, 
+                                     name:name, 
+                                     surname:surname,
+                                     password:newPassword,
+                                     old_password:oldPassword,
+                                     fav_hero:favoriteHero,
+                                     email:email
+                                    })
+            })
+            msg = await result.json();
+            alert(msg.message);
         });
       } catch (error) {
         console.error("Errore durante la validazione del token:", error);

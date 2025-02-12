@@ -2,7 +2,7 @@ const { MongoClient } = require('mongodb');
 
 require('dotenv').config();
 
-const uri = process.env.Cluster
+const uri = process.env.MONGO_URI
 
 async function connectToDatabase(){
     const client = new MongoClient(uri);

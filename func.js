@@ -61,17 +61,16 @@ async function addUser(username, name, surname, email, password, fav_hero) {
     }
 }
 
-async function updateUser(old_username, username, name, surname, email, password, fav_hero, credits, cards) {
+async function updateUser( username, name, surname, email, password, fav_hero, credits, cards) {
     try {
         const connection = await connectToDatabase();
         const database = connection.db;
         const client = connection.client;
 
-        const userResult = await findUser(old_username);
+        const userResult = await findUser(username);
         const existingUser = userResult.data;
 
         const updates = {
-            username,
             name,
             surname,
             email,
@@ -712,6 +711,50 @@ async function rejectOffer(trade_id, user2){
     }
 }
 
+async function addPack(quantity, cost, expiryTime) { 
+    let client;
+    try {
+        const connection = await connectToDatabase();
+        const database = connection.db;
+        client = connection.client;
+        
+        const collection = await database.collection("Packs");
+
+        const item = {
+            quantity: quantity,
+            cost: cost,
+            expiryTime: new Date(expiryTime) 
+        };
+
+        const result = await collection.insertOne(item);
+    } catch (error) {
+        console.error('Errore durante l\'inserimento:', error);
+    } finally {
+        await client.close();
+    }
+}
+
+async function getPacks() { 
+    let client;
+    try {
+        const connection = await connectToDatabase();
+        const database = connection.db;
+        client = connection.client;
+        
+        const collection = await database.collection("Packs");
+
+        const currentDate = new Date();
+
+        const validItems = await collection.find({ expiryTime: { $gte: currentDate } }).toArray();
+
+        return validItems;
+    } catch (error) {
+        console.error('Errore durante l\'inserimento:', error);
+    } finally {
+        await client.close();
+    }
+}
+
 module.exports = { addUser,
                    updateUser,
                    findUser,
@@ -731,5 +774,7 @@ module.exports = { addUser,
                    confirmOffer,
                    removeTrade,
                    showTrades,
-                   rejectOffer
+                   rejectOffer,
+                   addPack,
+                   getPacks
                 };

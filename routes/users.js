@@ -76,6 +76,8 @@ router.post('/add', async (req, res) => {
     });
 });
 
+const cryptoJS = require("crypto-js");
+
 router.post('/update', async (req, res) => {
     /*
     #swagger.tags = ['Users']
@@ -83,40 +85,48 @@ router.post('/update', async (req, res) => {
     #swagger.description = 'Modifica un utente con i dati forniti.'
     #swagger.path = '/users/update'
     */
-    const { old_username, username, name, surname, password, fav_hero } = req.body;
+    const { username, email, name, surname, password, old_password, fav_hero } = req.body;
 
     try {
-        const userResult = await findUser(old_username);
+        const userResult = await findUser(username);
 
         if (!userResult.found) {
-            return res.status(404).send({ error: "Utente non esistente" });
+            return res.status(404).send({ message: "Utente non esistente" });
         }
 
-        if (username != null && username !== old_username) {
-            if(await findUser(username).found){
-                return res.status(409).send({ message: `L'username ${username} è già preso` });
+        // Controllo che innanzitutto abbia inserito una nuova password
+        // Verifico che sia diversa da quella vecchia
+        let hashedPassword = password ? SHA256(password).toString(enc.Hex) : null;
+
+        if (hashedPassword) {
+            if (userResult.data.password === hashedPassword) {
+                return res.status(409).send({ message: "La password nuova deve essere diversa da quella precedente" });
             }
         }
 
-        if (password != null && userResult.data.password === password) {
-            return res.status(409).send({ message: "La password nuova deve essere diversa da quella precedente" });
-        }
+        const hashedOldPassword = cryptoJS.SHA256(old_password).toString(cryptoJS.enc.Hex);
 
-        // Aggiornamento dell'utente
-        const updateResult = await updateUser(
-            old_username, username, name, surname, email, password, fav_hero, 0, null
-        );
+        if (hashedOldPassword === userResult.data.password) {
+            // Aggiornamento dell'utente
+            const updateResult = await updateUser(
+                username, name, surname, email, hashedPassword, fav_hero, 0, null
+            );
 
-        if (updateResult) {
-            return res.status(200).send({ message: "Utente aggiornato con successo!" });
+            if (updateResult) {
+                return res.status(200).send({ message: "Utente aggiornato con successo!" });
+            } else {
+                return res.status(500).send({ message: "Nessun aggiornamento effettuato" });
+            }
         } else {
-            return res.status(500).send({ error: "Nessun aggiornamento effettuato" });
+            return res.status(401).send({ message: "La password vecchia non corrisponde" });
         }
+
     } catch (error) {
         console.error("Errore durante l'aggiornamento dell'utente:", error);
-        return res.status(500).send({ error: "Errore interno del server" });
+        return res.status(500).send({ message: "Errore durante l'aggiornamento dell'utente" });
     }
 });
+
 
 router.get('/find', async (req, res) => {
     /*

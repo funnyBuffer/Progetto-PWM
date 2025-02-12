@@ -21,33 +21,33 @@
                 <!--username-->
                 <div class="mb-3 form-group">
                     <label for="text" class="form-label">Username</label>
-                    <input type="text" class="form-control" id="username" placeholder="Inserisci il tuo username" required>
+                    <input type="text" class="form-control" id="username" placeholder="Enter your username" required>
                 </div>
                 <!--name-->
                 <div class="mb-3 form-group">
                     <label for="text" class="form-label">Name</label>
-                    <input type="text" class="form-control" id="name" placeholder="Inserisci il tuo nome" required>
+                    <input type="text" class="form-control" id="name" placeholder="Enter your name" required>
                 </div>
                 <!--surname-->
                 <div class="mb-3 form-group">
                     <label for="text" class="form-label">Surname</label>
-                    <input type="text" class="form-control" id="surname" placeholder="Inserisci il tuo cognome" required>
+                    <input type="text" class="form-control" id="surname" placeholder="Enter your surname" required>
                 </div>
                 <!--email-->
                 <div class="mb-3 form-group">
                     <label for="email" class="form-label">Email</label>
-                    <input type="email" class="form-control" id="email" placeholder="Inserisci la tua email" required>
+                    <input type="email" class="form-control" id="email" placeholder="Enter your email" required>
                 </div>
                 <!--password-->
                 <div class="mb-3 form-group">
                     <label for="password" class="form-label">Password</label>
-                    <input type="password" class="form-control" id="password" placeholder="Inserisci la tua password"
+                    <input type="password" class="form-control" id="password" placeholder="Enter your password"
                         required>
                 </div>
                 <!--conferma password-->
                 <div class="mb-3 form-group">
                     <label for="password" class="form-label">Confirm password</label>
-                    <input type="password" class="form-control" id="conf_password" placeholder="Conferma la tua password"
+                    <input type="password" class="form-control" id="conf_password" placeholder="Confirm the password"
                         required>
                 </div>
 
@@ -77,9 +77,11 @@
     <script src="../heroes.js"></script>
     <script>
         loadHeroes();
+        document.querySelector("form").addEventListener("submit", async (event) => {
+            event.preventDefault();
+        });
 
         document.getElementById("registerButton").addEventListener("click", async (event) => {
-            event.preventDefault(); 
 
             const username = document.getElementById("username").value;
             const name = document.getElementById("name").value;
@@ -87,7 +89,7 @@
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
             const conf_password = document.getElementById("conf_password").value;
-            const fav_hero = document.getElementById("fav_hero").value;
+            const fav_hero = document.getElementById("Superhero").value;
 
             const payload = {
                 username: username,
@@ -97,6 +99,7 @@
                 password: password,
                 fav_hero: fav_hero
             };
+            console.log(payload);
 
             if(password == conf_password){
                 try {
@@ -107,7 +110,7 @@
                     },
                     body: JSON.stringify(payload)
                     });
-                    signup = await response.json()
+                    const signup = await response.json()
 
                     if (signup.result) {
                         console.log("Registrazione avvenuto con successo");

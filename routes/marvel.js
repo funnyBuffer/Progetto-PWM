@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const {getFromMarvel, openPack, updateUser, findUser, profileCards, mergeCards} = require('../func.js');
+const {getFromMarvel, openPack, findUser, profileCards, mergeCards, addPack, getPacks} = require('../func.js');
 require('dotenv').config();
 
 router.get('/favHero', (req, res) => {
@@ -80,44 +80,56 @@ router.post('/unpack', async (req, res) => {
     });
 });
 
-router.post('/getImages', async (req, res) => {
-    const { quantity } = req.body;
+router.post('/addPack', async (req, res) => {
 
-    try {
-        const images = [];
-        
-        while (images.length < 3) { // Finché non ho almeno 3 immagini valide
-            let cards = openPack(quantity); // Richiedi un pack di carte
-            let i = 0;
-            let validImages = 0;
-            
-            // Prova a recuperare 3 immagini dal pack di carte
-            while (validImages < quantity && i < cards.length) {
-                try {
-                    const result = await getFromMarvel(`public/characters/${cards[i]}`, "");
-                    const image = result.data.results[0].thumbnail.path + "." + result.data.results[0].thumbnail.extension;
+    /*
+    #swagger.tags = ['Marvel']
+    #swagger.summary = 'Apre un pacchetto'
+    #swagger.description = 'Fornisce a un utente autenticato delle carte casuali da aggiungere alla collezione' 
+    #swagger.path = '/marvel/unpack'
+    */
 
-                    // Verifica se l'immagine è valida
-                    if (image && image !== 'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg') {
-                        images.push(image);
-                        validImages++;
-                    }
-                } catch (error) {
-                    console.error("Errore nel recupero dell'immagine per il personaggio", cards[i]);
-                }
-                i++;
-            }
+    const { quantity, cost, expiryTime } = req.body;
+
+    const token = req.cookies.authToken;
+    if (!token) {
+        return res.status(403).send({ error: 'Accesso non autorizzato' });
+    }
+
+    jwt.verify(token, process.env.secret_key, async (err, decoded) => {
+        if (err) {
+            return res.status(403).json({ message: 'Token non valido' });
         }
 
-        // Restituisce le immagini valide
-        return res.json({ success: true, data: images });
-    } catch (error) {
-        console.error("Errore durante l'elaborazione:", error);
-        return res.status(500).send({ error: "Errore interno del server" });
-    }
+        try {
+            const user = await findUser(decoded.username);
+            if(user.data.username != "admin") return;
+            else{    
+                addPack(quantity, cost, expiryTime);
+            }
+
+            return res.status(200).send({ message:"Pacchetto inserito"});
+        } catch (error) {
+            console.error("Errore durante l'elaborazione:", error);
+            return res.status(500).send({ message: "Errore interno del server" });
+        }
+    });
 });
 
-
-
+router.get('/getPacks', async (req, res) => {
+    /*
+    #swagger.tags = ['Marvel']
+    #swagger.summary = 'Restituisce i pacchetti special'
+    #swagger.description = 'Restituisce tutti i pacchetti creati dall'admin che sono a tempo limitato'
+    #swagger.path = '/marvel/favHero'
+    */
+    try {
+        const packs = await getPacks();
+        return res.status(200).json({ packs:packs});
+    } catch (error) {
+        console.error("Errore durante l'elaborazione:", error);
+        return res.status(500).json({ error: "Errore interno del server" });
+    } 
+});
 
 module.exports = router;

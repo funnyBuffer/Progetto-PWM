@@ -32,6 +32,11 @@ app.use('/marvel', marvelRouter);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+//così facendo appena apre da Railway rindirizza alla homepage
+app.get("/", (req, res) => {
+  res.redirect("/home");
+});
+
 //// Pagina login
 app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'pages', 'login.html'));
@@ -77,14 +82,10 @@ app.get('/collection', (req, res) => {
 });
 
 //Collezione di carte per ogni utente
-app.get('/test', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'pages', 'test.html'));
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'pages', 'admin.html'));
 });
 
-//Collezione di carte per ogni utente
-app.get('/error', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'pages', 'error.html'));
-});
 
 //// Aggiornamento ogni 12 ore del file cardsID
 scheduleFetchCharacterIds();

@@ -27,7 +27,7 @@ function loadNavbar() {
                         </ul>
                     </li>
                     <li class="nav-item d-none" id="admin-menu">
-                        <a class="nav-link" href="/packs">Make packs</a>
+                        <a class="nav-link" href="/admin">Make packs</a>
                     </li>
                 </ul>
                 <ul class="navbar-nav d-flex align-items-center">
