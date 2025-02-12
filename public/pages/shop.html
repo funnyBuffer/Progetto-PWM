@@ -69,14 +69,16 @@
                         <img id="modalImage" src="" class="superheroUnpack card-img-top mx-auto img-fluid" alt="Packet Modal" style="width: 140px;">
                         <!-- Carte spacchettate -->
                         <div id="cardsContainer" class="mt-3 d-flex flex-wrap justify-content-center gap-3 d-none">
-                            <div class="packet-card card h-100 d-none" style="width: 12rem;">
-                                <img id="image" src="" class="card-img-top img-fluid">
-                                <div class="card-body d-flex align-items-center justify-content-center">
-                                    <h5 id="nameCard" class="card-title mt-2 text-center" style="color: rgb(0, 0, 0);"></h5>
-                                </div>
-                            </div>
+                            
                         </div>
                     </div>
+                </div>
+            </div>
+            <!-- template della carta -->
+            <div class="packet-card card h-100 d-none" style="width: 12rem;">
+                <img id="image" src="" class="card-img-top img-fluid">
+                <div class="card-body d-flex align-items-center justify-content-center">
+                    <h5 id="nameCard" class="card-title mt-2 text-center" style="color: rgb(0, 0, 0);"></h5>
                 </div>
             </div>
         </div>
@@ -88,26 +90,39 @@
         let unpacking = false; 
 
         document.addEventListener("DOMContentLoaded", function () {
+            const packModal = document.getElementById("packModal");
+            const modalImage = document.getElementById("modalImage");
+            const cardsContainer = document.getElementById("cardsContainer");
+
+            packModal.addEventListener("hidden.bs.modal", function () {
+                // Solo quando il modal è chiuso, ripuliamo il contenuto
+                cardsContainer.innerHTML = ""; // Rimuove il contenuto
+                cardsContainer.classList.add("d-none"); // Nasconde il container
+                modalImage.classList.remove("d-none"); // Mostra di nuovo l'immagine del pacchetto
+            });
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
             document.querySelectorAll(".packets").forEach(img => {
                 img.addEventListener("click", function () {
-                    document.getElementById("modalImage").src = this.src;
-                    document.getElementById("modalImage").alt = this.alt;
-                    
+                    const packImage = document.getElementById("modalImage");
+                    packImage.src = this.src;
+                    packImage.alt = this.alt;
+
                     const modalImage = document.getElementById("modalImage");
                     modalImage.addEventListener("click", async function() {
-                        if (unpacking) return; 
+                        if (unpacking) return;
                         unpacking = true;
-                        const cost = 1; 
-                        const quantity = 3; 
-                        
+                        const cost = 1;
+                        const quantity = 3;
+
                         await unpack(cost, quantity);
 
-                        unpacking = false; 
+                        unpacking = false;
                     });
                 });
             });
         });
-
         
         let credits = 0;
         
@@ -147,7 +162,7 @@
             } 
         })();
 
-        async function unpack(cost, quantity){
+        async function unpack(cost, quantity) {
             if (credits >= cost) {
                 updateCredits(-cost);
                 const response = await fetch("/marvel/unpack", {
@@ -177,7 +192,7 @@
                     });
 
                     const information = await cardsResponse.json();
-                    
+
                     const clone = cardTemplate.cloneNode(true);
                     clone.classList.remove('d-none');
 
@@ -188,7 +203,7 @@
                     let imageUrl = `${information.data.data.results[0].thumbnail.path}.${information.data.data.results[0].thumbnail.extension}`;
                     if(imageUrl.includes("image_not_available")) {
                         imageUrl = "icons/imageNotFound.png";
-                    } 
+                    }
                     image.src = imageUrl;
 
                     cardsContainer.appendChild(clone);
@@ -197,12 +212,12 @@
                 // Animazione spacchettamento
                 const packImage = document.getElementById('modalImage');
                 packImage.classList.add('animate-open');
-                
+
                 setTimeout(function() {
                     packImage.classList.remove('animate-open');
                     packImage.classList.add('d-none');
                     document.getElementById('cardsContainer').classList.remove('d-none');
-                }, 1000); 
+                }, 1000);
             } else {
                 alert("Non hai abbastanza crediti per acquistare questo pacchetto");
             }

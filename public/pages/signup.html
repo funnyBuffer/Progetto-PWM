@@ -115,6 +115,23 @@
                         console.log("Registrazione avvenuto con successo");
                         document.getElementById("ErrMessage").textContent = "Registrazione avvenuta con successo";
                         document.getElementById("ErrMessage").style.color = "green";
+                        try {
+                                const response = await fetch("../auth/login", {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json"
+                                    },
+                                    body: JSON.stringify({username:username, password:password})
+                                });
+
+                                if (response.ok) {
+                                    const data = await response.json();
+                                    localStorage.setItem("token", data.token);
+                                    window.location.href = "/home";
+                                } 
+                            } catch (error) {
+                            console.error("Errore di rete:", error);
+                            }
                     } else {
                         document.getElementById("ErrMessage").textContent = signup.message;
                         document.getElementById("ErrMessage").style.color = "red";

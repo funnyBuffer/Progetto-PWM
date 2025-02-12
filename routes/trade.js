@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const {addNewTrade, findUser, countOccurrences, addOffer, confirmOffer, removeTrade, showTrades, rejectOffer} = require('../func.js');
+const {addNewTrade, findUser, countOccurrences, addOffer, confirmOffer, removeTrade, showTrades, rejectOffer, checkCard} = require('../func.js');
 
 /* 
 Impostazione del trade
@@ -128,7 +128,7 @@ router.post('/accept', async (req, res) => {
                 return res.status(200).send({ message: "Offerta accettata" });
             } else {
                 console.log(result.message);
-                return res.status(500).send({ message: "Errore durante l'accettazione dell'offerta, riprovare" });
+                return res.status(500).send({ message: "Errore durante l'accettazione dell'offerta: " + result.message });
             }
         } catch (error) {
             console.error("Errore nell'accettazione del trade:", error);

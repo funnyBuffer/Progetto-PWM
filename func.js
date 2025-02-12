@@ -418,7 +418,7 @@ async function removeCards(user, cards) {
 
         for (const card of cards) {
             const cardString = card.toString();
-            
+
             // Controllo la quantità attuale della carta prima di modificarla
             const userDoc = await usersCollection.findOne(
                 { username: user, "cards.card": cardString },
@@ -571,6 +571,15 @@ async function confirmOffer(trade_id, user2Id) {
 
         const currentTrade = trade.data;
 
+        //Verifico l'integrità andando a verificare se l'utente1 non abbia già le carte dell'utente 2
+        const acceptedUser = currentTrade.user2.find(user => user.username === user2Id);
+        for (const card of acceptedUser.offered_cards) {
+            const hasCard = await checkCard(currentTrade.user1.username, card);
+            if (hasCard) {
+                return { success: false, message: `Trade non valido: user1 possiede già la carta ${card}` };
+            }
+        }
+
         if (!currentTrade.user2.some(user => user.username === user2Id)) {
             return { success: false, message: "Utente che ha accettato non valido" };
         }
@@ -581,7 +590,6 @@ async function confirmOffer(trade_id, user2Id) {
             await mergeCards(excludedUser.id, excludedUser.offered_cards);
         }
 
-        const acceptedUser = currentTrade.user2.find(user => user.username === user2Id);
         user1_offeredCards = currentTrade.user1.offered_cards.flat();
         
         const updatedTrade = {
@@ -711,6 +719,7 @@ async function rejectOffer(trade_id, user2){
     }
 }
 
+//funzione non usata perchè non è stato implementato l'inserimento dei pacchetti
 async function addPack(quantity, cost, expiryTime) { 
     let client;
     try {
@@ -734,6 +743,7 @@ async function addPack(quantity, cost, expiryTime) {
     }
 }
 
+//funzione non usata perchè non è stato implementato l'inserimento dei pacchetti
 async function getPacks() { 
     let client;
     try {
@@ -750,6 +760,29 @@ async function getPacks() {
         return validItems;
     } catch (error) {
         console.error('Errore durante l\'inserimento:', error);
+    } finally {
+        await client.close();
+    }
+}
+
+async function checkCard(user, card){
+    let client;
+    try {
+        const connection = await connectToDatabase();
+        const database = connection.db;
+        client = connection.client;
+        
+        const collection = await database.collection("Users");
+
+        const cardString = card.toString();
+        const userDeck = await collection.findOne({ username: user, "cards.card": cardString });
+        if(!userDeck){
+            return false;
+        } else {
+            return true;
+        }
+    } catch (error) {
+        console.error('Errore durante la ricerca:', error);
     } finally {
         await client.close();
     }
