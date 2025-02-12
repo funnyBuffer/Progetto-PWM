@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Post</title>
+        <link rel="icon" href="../../icons/logo.png" type="image/png">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="../css/css_default.css">
+        <link rel="stylesheet" href="../css/navbar.css">
+        <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
+    </head>
+    <body>
+        <div class="container text-center mt-2">
+            <div class="fumetto" style="font-family: 'Bangers', cursive; margin-top: 100px;">Sell your cards</div>
+        </div>
+        
+        <div class="container" style="padding-top: 40px;">
+            <div class="row row-cols-xl-6 row-cols-lg-5 row-cols-md-3 row-cols-sm-2 row-cols-2 g-4 mt-5">
+                <div id="collection" class="col d-none">
+                    <div class="card h-100">
+                        <img id="image" src="" class="card-img-top square-img" alt="...">
+                        <div class="card-body">
+                            <h5 id="nameCard" class="card-title" style="color: black;"></h5>
+                        </div>
+                        <div class="card-footer text-center">
+                            <button class="btn btn-danger sellButton" data-card-id="">Sell</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            (async function() {
+                try {
+                    const cardTemplate = document.getElementsByClassName('col')[0];
+                    if (!cardTemplate) {
+                        throw new Error("Elemento 'collection' non trovato nel DOM.");
+                    }
+
+                    const validationResponse = await fetch("/auth/valid", {
+                        method: "GET",
+                        headers: { "Content-Type": "application/json" },
+                        credentials: "include"
+                    });
+
+                    if (!validationResponse.ok) {
+                        throw new Error("Errore nella validazione dell'utente.");
+                    }
+
+                    const cookie = await validationResponse.json();
+
+                    const response = await fetch("/users/info", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ username: cookie.user.username }),
+                        credentials: "include"
+                    });
+
+                    if (!response.ok) {
+                        throw new Error("Errore nel recupero delle informazioni dell'utente.");
+                    }
+
+                    const info = await response.json();
+                    for (let i = 0; i < info.userCardsCount; i++) {
+                        const cardInfo = info.userCards[i];
+                        const quantity = cardInfo.quantity;
+                        const cardID = cardInfo.card;
+
+                        try {
+                            const urlCard = `public/characters/${cardID}`;
+                            const cardsResponse = await fetch("/marvel/marvellous", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ url: urlCard, query: '' }),
+                                credentials: "include"
+                            });
+
+                            if (!cardsResponse.ok) {
+                                throw new Error("Errore nella richiesta API");
+                            }
+
+                            const information = await cardsResponse.json();
+
+                            for (let j = 0; j < quantity; j++) {
+                                const clone = cardTemplate.cloneNode(true);
+                                const nameCard = clone.getElementsByClassName('card-title')[0];
+                                const image = clone.getElementsByClassName('card-img-top')[0];
+                                const sellButton = clone.getElementsByClassName('sellButton')[0];
+
+                                nameCard.innerHTML = information.data.data.results[0].name;
+    
+                                let imageUrl = `${information.data.data.results[0].thumbnail.path}.${information.data.data.results[0].thumbnail.extension}` || "icons/imageNotAvailable.jpg";
+                                if (imageUrl.includes("image_not_available")) {
+                                    imageUrl = "icons/imageNotFound.png";
+                                }
+                                image.src = imageUrl;
+                                image.classList.add('square-img');
+
+                                sellButton.setAttribute("data-card-id", cardID);
+                                sellButton.addEventListener("click", async function() {
+                                    alert(`Hai venduto la carta`);
+                                    const cardsResponse = await fetch("/credits/sell", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ card:cardID }),
+                                        credentials: "include"
+                                    });
+                                });
+
+                                clone.classList.remove('d-none');
+                                cardTemplate.before(clone);
+                            }
+                        } catch (error) {
+                            console.error("Errore nel caricamento della collezione dell'utente:", error);
+                        }
+                    }
+                } catch (error) {
+                    console.error("Errore nel caricamento della collezione dell'utente:", error);
+                }
+            })();
+        </script>
+        
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+        <script src="/navbar.js"></script>
+        <script> loadNavbar(); </script>
+    </body>
+</html>

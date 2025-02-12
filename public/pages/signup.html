@@ -21,7 +21,7 @@
                 <!--username-->
                 <div class="mb-3 form-group">
                     <label for="text" class="form-label">Username</label>
-                    <input type="text" class="form-control" id="username" placeholder="Enter your username" required>
+                    <input type="text" class="form-control" id="usernameeee" placeholder="Enter your username" required>
                 </div>
                 <!--name-->
                 <div class="mb-3 form-group">
@@ -83,7 +83,7 @@
 
         document.getElementById("registerButton").addEventListener("click", async (event) => {
 
-            const username = document.getElementById("username").value;
+            const username = document.getElementById("usernameeee").value;
             const name = document.getElementById("name").value;
             const surname = document.getElementById("surname").value;
             const email = document.getElementById("email").value;
@@ -99,7 +99,6 @@
                 password: password,
                 fav_hero: fav_hero
             };
-            console.log(payload);
 
             if(password == conf_password){
                 try {

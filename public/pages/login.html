@@ -37,7 +37,8 @@
                 <!--Bottone Login-->
                 <div id="loginButton">
                     <button type="submit" class="btn btn-danger btn-login">Accedi</button>
-                    <p class="pt-4"> Don't have an account yet? <a href="/signup" style="text-decoration: none; color: #6f27a1;">Create an account</a> </p>
+                    <p class="pt-4"> Don't have an account yet? <a href="/signup" id="create-account-link" style="text-decoration: none; color: #6f27a1;">Create an account</a> </p>
+
                 </div>
             </form>
         </div>
@@ -48,6 +49,10 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        document.getElementById("create-account-link").addEventListener("click", (event) => {
+            event.preventDefault();
+            window.location.href = "/signup";
+        });
 
         document.getElementById("loginButton").addEventListener("click", async (event) => {
             event.preventDefault(); 

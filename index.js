@@ -86,6 +86,10 @@ app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'pages', 'admin.html'));
 });
 
+//Collezione di carte per ogni utente
+app.get('/sell', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'pages', 'trades', 'sell.html'));
+});
 
 //// Aggiornamento ogni 12 ore del file cardsID
 scheduleFetchCharacterIds();

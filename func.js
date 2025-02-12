@@ -418,13 +418,13 @@ async function removeCards(user, cards) {
 
         for (const card of cards) {
             const cardString = card.toString();
-
+            
             // Controllo la quantità attuale della carta prima di modificarla
             const userDoc = await usersCollection.findOne(
                 { username: user, "cards.card": cardString },
                 { projection: { "cards.$": 1 } }
             );
-
+            
             if (!userDoc || !userDoc.cards || userDoc.cards.length === 0) {
                 console.warn(`Carta ${cardString} non trovata per l'utente ${user}`);
                 continue; 
@@ -776,5 +776,6 @@ module.exports = { addUser,
                    showTrades,
                    rejectOffer,
                    addPack,
-                   getPacks
+                   getPacks,
+                   removeCards
                 };

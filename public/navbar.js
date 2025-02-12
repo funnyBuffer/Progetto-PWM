@@ -24,6 +24,7 @@ function loadNavbar() {
                             <li><a class="dropdown-item" href="/post">Post </a></li>
                             <li><a class="dropdown-item" href="/offers">Offers</a></li>
                             <li><a class="dropdown-item" href="/proposals">Proposals </a></li>
+                            <li><a class="dropdown-item" href="/sell">Sell</a></li>
                         </ul>
                     </li>
                     <li class="nav-item d-none" id="admin-menu">
