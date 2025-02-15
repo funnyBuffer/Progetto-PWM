@@ -10,6 +10,8 @@
         <!-- Stili personalizzati -->
         <link rel="stylesheet" href="../css/css_default.css">
         <link rel="stylesheet" href="../css/navbar.css">
+        <!-- Stile fumettoso-->
+        <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
     </head>
     <body>
         <div class="container" style="padding-top: 80px;">
@@ -23,6 +25,10 @@
                     </div>
                 </div>
             </div>
+        </div>
+        <!-- Messaggio in caso sia vuoto -->
+        <div id="empty" class="d-none">
+            <div class="fumetto">Your collection at the moment is empty, open some packs to fill it</div>
         </div>
 
         <!-- Modal -->
@@ -97,6 +103,11 @@
                 }
 
                 const info = await response.json();
+
+                if(info.userCardsCount == 0){
+                    document.getElementById("empty").classList.remove("d-none");
+                    return;
+                }
 
                 for (let i = 0; i < info.userCardsCount; i++) {
                     const cardInfo = info.userCards[i];

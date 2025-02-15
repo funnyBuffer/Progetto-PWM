@@ -53,7 +53,7 @@ function loadNavbar() {
                         </a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" id="profile-link" href="/profile"><img src="icons/user.png" alt="Profile" width="16"> Profile</a></li>
-                            <li><a class="dropdown-item" id="logout-link" href="#"><img src="icons/logout.png" alt="Logout" width="16"> Logout</a></li>
+                            <li><a class="dropdown-item" id="logout-link"><img src="icons/logout.png" alt="Logout" width="16"> Logout</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -149,6 +149,7 @@ async function checkAuthToken() {
                     },
                     credentials: "include"  
                 });  
+                localStorage.removeItem("token");
                 window.location.reload();  
             });
 

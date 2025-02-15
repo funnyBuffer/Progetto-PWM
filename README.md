@@ -41,8 +41,6 @@ Marvel Superhero Cards è un sito web che permette agli utenti di esplorare e vi
    port=
    Cluster=
    secret_key=
-   marvel_public_key=
-   marvel_private_key=
    ```
   - `port`: la porta su cui verrà hostato il server.
   - `CLUSTER`: il link al portale di MongoDB. Puoi ottenerlo accedendo a [MongoDB Atlas](https://account.mongodb.com/account/login?nds=true), creando un Cluster, andando su "Connect" e poi "Compass". La connection string sarà simile a questa: 
@@ -50,14 +48,8 @@ Marvel Superhero Cards è un sito web che permette agli utenti di esplorare e vi
   mongodb+srv://david:<db_password>@cluster0.3p4d0zi.mongodb.net/
   ```
   - `secret_key`: la chiave segreta per la cifratura delle password usando SHA256.
-  - `marvel_private_key` e `marvel_public_key` le chiavi pubbliche e private per l'API Marvel, che puoi ottenere dal [sito ufficiale delle API Marvel](https://developer.marvel.com/docs) 
    
-3. **Configurare il database:** Nella directory del progetto, esegui il seguente comando per creare gli schemi del database:
-   nella directory eseguire
-   ```bash
-   chmod +x create_schemas_with_env.sh
-   ./create_schemas_with_env.sh
-   ```
+3. **Configurare il database:** 
 
 4. **Avvia il server:** Per avviare il server esegui:
    ```bash

@@ -24,7 +24,7 @@
         <div id="zeroOffer" class="d-flex justify-content-center align-items-center d-none" style="height: 100vh; z-index: 200;">
             <div class="fumetto text-center">You have no offers at the moment, come back later</div>
         </div>
-    
+        
         <!-- Modal -->
         <div class="modal fade" id="offerModal" tabindex="-1" aria-labelledby="offerModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
@@ -56,7 +56,7 @@
                 const data = await response.json();
 
                 // Non ci sono offerte per questo utente
-                if (!data || !data.trades || !data.trades.trades || !Array.isArray(data.trades.trades)) {
+                if (!data || !data.trades || !data.trades.trades || !Array.isArray(data.trades.trades) || data.trades.trades.length == 0) {
                     document.getElementById("zeroOffer").classList.remove("d-none");
                     throw new Error("La risposta del server non contiene un array valido di trade o è vuoto");
                 }

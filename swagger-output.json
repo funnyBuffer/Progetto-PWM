@@ -113,10 +113,10 @@
             "schema": {
               "type": "object",
               "properties": {
-                "old_username": {
+                "username": {
                   "example": "any"
                 },
-                "username": {
+                "email": {
                   "example": "any"
                 },
                 "name": {
@@ -125,10 +125,10 @@
                 "surname": {
                   "example": "any"
                 },
-                "email": {
+                "password": {
                   "example": "any"
                 },
-                "password": {
+                "old_password": {
                   "example": "any"
                 },
                 "fav_hero": {
@@ -141,6 +141,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
           },
           "404": {
             "description": "Not Found"
@@ -161,6 +164,35 @@
         ],
         "summary": "Trova un utente",
         "description": "Trova un utente attraverso l",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Trova un utente",
+        "description": "Trova un utente attraverso l",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "username": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -242,7 +274,7 @@
         }
       }
     },
-    "/auth/auth": {
+    "/auth/valid": {
       "get": {
         "tags": [
           "Auth"
@@ -255,6 +287,37 @@
           },
           "401": {
             "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "delete": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Effettua il logout",
+        "description": "Rimuove il token di autenticazione dal cookie e disconnette l\\'utente.",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/credits/getcredits": {
+      "get": {
+        "tags": [
+          "Credits"
+        ],
+        "summary": "Ottieni i crediti di un utente",
+        "description": "Restituisce il numero di crediti di un utente.",
+        "responses": {
+          "200": {
+            "description": "OK"
           },
           "403": {
             "description": "Forbidden"
@@ -284,8 +347,45 @@
           }
         ],
         "responses": {
+          "200": {
+            "description": "OK"
+          },
           "403": {
             "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/credits/sell": {
+      "post": {
+        "tags": [
+          "Credits"
+        ],
+        "summary": "Vende una carta per un credito",
+        "description": "Ogni carta può essere venduta per acquistare un credito",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "card": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -380,9 +480,35 @@
         ],
         "summary": "Accetta una proposta di scambio",
         "description": "Permette di accettare una proposta di scambio da parte di un utente che ha effettuato la proposta",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "trade_id": {
+                  "example": "any"
+                },
+                "user2": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
         "responses": {
-          "default": {
-            "description": ""
+          "200": {
+            "description": "OK"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -394,9 +520,32 @@
         ],
         "summary": "Rimuove una proposta di scambio",
         "description": "Permette di rimuovere una proposta di scambio pubblicata da un utente",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "trade_id": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
         "responses": {
-          "default": {
-            "description": ""
+          "200": {
+            "description": "OK"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -409,8 +558,74 @@
         "summary": "Mostra le offerte per gli scambi",
         "description": "Fornisce tutte le offerte per i possibili scambi",
         "responses": {
-          "default": {
-            "description": ""
+          "200": {
+            "description": "OK"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/trade/rejection": {
+      "delete": {
+        "tags": [
+          "Trade"
+        ],
+        "summary": "Rifiuta una proposta di scambio",
+        "description": "Rifiuta singolarmente le proposte di scambio da parte di un utente",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "trade_id": {
+                  "example": "any"
+                },
+                "user2": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/marvel/favHero": {
+      "get": {
+        "tags": [
+          "Marvel"
+        ],
+        "summary": "Restituisce i pacchetti special",
+        "description": "Restituisce tutti i pacchetti creati dall",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -450,12 +665,32 @@
       }
     },
     "/marvel/unpack": {
-      "get": {
+      "post": {
         "tags": [
           "Marvel"
         ],
-        "summary": "Apre un pacchetto di 5 carte",
-        "description": "Fornisce a un utente autenticato 5 carte casuali da aggiungere alla collezione",
+        "summary": "Apre un pacchetto",
+        "description": "Fornisce a un utente autenticato delle carte casuali da aggiungere alla collezione",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "quantity": {
+                  "example": "any"
+                },
+                "cost": {
+                  "example": "any"
+                },
+                "expiryTime": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
