@@ -45,7 +45,7 @@ Marvel Superhero Cards è un sito web che permette agli utenti di esplorare e vi
   - `port`: la porta su cui verrà hostato il server.
   - `CLUSTER`: il link al portale di MongoDB. Puoi ottenerlo accedendo a [MongoDB Atlas](https://account.mongodb.com/account/login?nds=true), creando un Cluster, andando su "Connect" e poi "Compass". La connection string sarà simile a questa: 
   ```plaintext
-  mongodb+srv://david:<db_password>@cluster0.3p4d0zi.mongodb.net/
+  mongodb+srv://<username>:<db_password>@cluster0.3p4d0zi.mongodb.net/
   ```
   - `secret_key`: la chiave segreta per la cifratura delle password usando SHA256.
    

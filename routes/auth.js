@@ -65,9 +65,10 @@ router.delete('/logout', async (req, res) => {
 
     res.cookie('authToken', '', {
         httpOnly: true,
-        secure: true, // Usa `true` se utilizzi HTTPS
+        secure: true, 
         sameSite: 'Strict',
         expires: new Date(0), // Imposta la data di scadenza nel passato
+        path: '/'
     });
 
     return res.status(200).send({ message: 'Logout effettuato con successo' });
