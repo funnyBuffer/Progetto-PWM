@@ -100,6 +100,30 @@ async function checkAuthToken() {
                 window.location.href = "/shop";
             });
 
+            const creditsResponse = await fetch("/credits/getcredits", {
+                method: "GET",  
+                headers: {
+                    "Content-Type": "application/json"  
+                },
+                credentials: "include"  
+            });
+
+            const credits = await creditsResponse.json();
+            document.getElementById("hexcoin-amount").innerText = " "+ credits.credits;
+
+            // Gestione clic sulla voce del menu per il logout
+            document.getElementById("logout-link").addEventListener("click", async function() {
+                await fetch("/auth/logout", {
+                    method: "DELETE",  
+                    headers: {
+                        "Content-Type": "application/json"  
+                    },
+                    credentials: "include"  
+                });  
+                localStorage.removeItem("token");
+                window.location.reload();  
+            });
+
             const idHerojson = await fetch("/marvel/favHero", {
                 method: "GET",  
                 headers: {
@@ -128,30 +152,6 @@ async function checkAuthToken() {
                 imageUrl = "icons/user.png";
             } 
             document.getElementById("imageProfile").src = imageUrl;
-
-            const creditsResponse = await fetch("/credits/getcredits", {
-                method: "GET",  
-                headers: {
-                    "Content-Type": "application/json"  
-                },
-                credentials: "include"  
-            });
-    
-            const credits = await creditsResponse.json();
-            document.getElementById("hexcoin-amount").innerText = " "+ credits.credits;
-
-            // Gestione clic sulla voce del menu per il logout
-            document.getElementById("logout-link").addEventListener("click", async function() {
-                await fetch("/auth/logout", {
-                    method: "DELETE",  
-                    headers: {
-                        "Content-Type": "application/json"  
-                    },
-                    credentials: "include"  
-                });  
-                localStorage.removeItem("token");
-                window.location.reload();  
-            });
 
             if (data.user.username === "admin") {
                 document.getElementById("admin-menu").classList.remove("d-none");
